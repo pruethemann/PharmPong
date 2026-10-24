@@ -8,6 +8,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Separate build dirs allow several dev servers in parallel (NEXT_DIST_DIR=.next-a pnpm dev -p 3101).
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ["@node-rs/argon2", "sharp"],
   experimental: {
     serverActions: { bodySizeLimit: "2mb" },

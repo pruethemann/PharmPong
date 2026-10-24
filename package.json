@@ -25,7 +25,8 @@
     "seed:demo": "tsx scripts/seed-demo.ts",
     "simulate": "tsx scripts/simulate-event.ts",
     "export": "tsx scripts/export-tournament.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "scenario": "tsx scripts/dev-scenario.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",
