@@ -4,7 +4,7 @@ import { Logo } from "@/components/pp/logo";
 import { UserMenu } from "@/components/pp/user-menu";
 import { getCurrentUser } from "@/server/auth/current";
 
-export default async function AppLayout({ children }: LayoutProps<"/">) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   const role = user?.role ?? null;
   return (
