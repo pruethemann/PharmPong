@@ -7,3 +7,6 @@ playwright-report
 test-results
 data
 coverage
+.next-*
+.shots
+.playwright-mcp
