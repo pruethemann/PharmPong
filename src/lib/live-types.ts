@@ -129,6 +129,8 @@ export type AuthedExtras = {
       openIssue: string | null;
     }
   >;
+  /** Referee/admin: scheduler suggestion per free table (what a referee may assign). */
+  suggestions?: { tableId: string; matchId: string }[];
   /** Admin only. */
   admin?: {
     suggestions: { tableId: string; matchId: string }[];

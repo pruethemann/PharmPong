@@ -379,6 +379,8 @@ export async function buildAuthedSnapshot(
     };
     if (user.role === "REFEREE" || user.role === "ADMIN") {
       extras.matchOps = matchOpsOf(state, await loadOpenIssues(tx, tournamentId));
+      // Referees may put exactly these suggestions on their table; blocked while paused.
+      extras.suggestions = state.tournament.isPaused ? [] : suggestAssignments(state.matches, state.tables);
     }
     if (user.role === "ADMIN") {
       extras.admin = {
