@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Trophy } from "lucide-react";
 import type { MatchStatusKey } from "@/lib/i18n/de";
+import { sourceLabel } from "@/lib/live-labels";
 import { cn } from "@/lib/utils";
 import { StatusPill } from "./status-pill";
 import { TableBadge } from "./table-badge";
@@ -23,12 +24,6 @@ export type MatchCardData = {
   awayCupsRemaining?: number | null;
 };
 
-function sourceLabel(src?: string | null): string {
-  if (!src) return "Noch offen";
-  if (src.startsWith("W:")) return `Sieger ${src.slice(2)}`;
-  return `${src.slice(1)}. Gruppe ${src[0]}`;
-}
-
 function TeamRow({
   team,
   source,
@@ -45,9 +40,15 @@ function TeamRow({
   decided: boolean;
 }) {
   return (
-    <div className={cn("flex min-h-12 items-center gap-3", decided && !isWinner && "opacity-55")}>
+    <div className="flex min-h-12 items-center gap-3">
       {team ? (
-        <TeamAvatar name={team.name} logoUrl={team.logoUrl} side={side} size="sm" />
+        <TeamAvatar
+          name={team.name}
+          logoUrl={team.logoUrl}
+          side={side}
+          size="sm"
+          muted={decided && !isWinner}
+        />
       ) : (
         <span
           className="border-border size-8 shrink-0 rounded-2xl border-2 border-dashed"
@@ -57,7 +58,11 @@ function TeamRow({
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-base",
-          team ? "font-semibold" : "text-muted-foreground italic",
+          team
+            ? decided && !isWinner
+              ? "text-muted-foreground"
+              : "font-semibold"
+            : "text-muted-foreground italic",
         )}
       >
         {team ? team.name : sourceLabel(source)}

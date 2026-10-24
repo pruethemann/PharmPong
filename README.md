@@ -5,7 +5,7 @@ Mobile-first, German UI, 24 players / 12 teams / 4 groups / 19 matches on 2 tabl
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript strict · Tailwind v4 + shadcn/ui · Prisma 7 + PostgreSQL ·
+Next.js 16 (App Router), React 19 · TypeScript strict · Tailwind v4 + shadcn/ui · Prisma 7 + PostgreSQL ·
 Zod · React Hook Form · Vitest · Playwright · Railway.
 
 ## Local development
@@ -30,6 +30,42 @@ pnpm dev                      # http://localhost:3000
 | `pnpm test:int`                   | Integration tests against the `pharmapong_test` DB            |
 | `pnpm test:e2e`                   | Playwright (desktop + mobile) against the `pharmapong_e2e` DB |
 | `pnpm verify`                     | All of the above except E2E                                   |
+
+## Demo data & scenarios
+
+```bash
+pnpm scenario registration    # 12 complete teams, registration open
+pnpm scenario groups           # group stage: results, 2 live matches, 1 awaiting confirmation
+pnpm scenario knockout         # quarterfinals running
+pnpm scenario completed        # full 19-match tournament incl. tie, shootout, correction, champion
+```
+
+Each scenario starts a fresh tournament (the previous one is cancelled; its history is kept).
+Logins with password `pharmapong-demo`:
+
+| Account                                             | Role    |
+| --------------------------------------------------- | ------- |
+| `dev-admin@pharmapong.test`                         | Admin   |
+| `schiri@pharmapong.test`                            | Referee |
+| `demo01@pharmapong.test` … `demo24@pharmapong.test` | Players |
+
+The demo/simulation scripts refuse to run in production unless `ALLOW_DEMO_SEED=true`.
+The `@pharmapong.test` domain is reserved and cannot be used for self-registration.
+
+## Routes
+
+| Route                             | Who                 | What                                                       |
+| --------------------------------- | ------------------- | ---------------------------------------------------------- |
+| `/`                               | everyone            | dashboard: phase, live tables, next matches, my next match |
+| `/register`, `/login`, `/profile` | everyone            | accounts                                                   |
+| `/team`, `/join/[code]`           | players             | create/join teams, invitations, logo                       |
+| `/tournament`                     | everyone            | groups, knockout bracket, schedule                         |
+| `/matches/[id]`                   | everyone            | match details and timeline                                 |
+| `/rules`                          | everyone            | PharmaPong rules (reference vs house rules)                |
+| `/referee`                        | referees            | table operation, timer, two-step result entry              |
+| `/admin`                          | admins              | overview, tournament, matches, teams, users, audit         |
+| `/display`                        | public (if enabled) | 16:9 projector mode                                        |
+| `/api/health`                     | monitoring          | DB health check                                            |
 
 ## Tools
 

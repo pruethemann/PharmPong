@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowRight, Ban, Coffee, Hourglass, MapPin } from "lucide-react";
-import { matchStatusLabel } from "@/lib/i18n/de";
 import type { LiveMatch, LiveTable, LiveTeam } from "@/lib/live-types";
 import { BigTimer } from "@/components/pp/big-timer";
 import { StatusPill } from "@/components/pp/status-pill";
@@ -92,10 +91,8 @@ export function LiveTableCard({
   return (
     <Link
       href={`/matches/${match.id}`}
+      // No aria-label: the name comes from the visible content (axe label-content-name-mismatch).
       className="group block rounded-2xl focus-visible:outline-offset-4"
-      aria-label={`Tisch ${table.number}: ${home?.name ?? "offen"} gegen ${away?.name ?? "offen"}, ${
-        matchStatusLabel[match.status]
-      }. Zum Spiel`}
     >
       <article
         className={cn(
@@ -111,10 +108,13 @@ export function LiveTableCard({
         <p className="font-display text-muted-foreground text-sm tracking-widest">{match.label}</p>
         <div className="flex flex-col gap-2">
           <TeamLine team={home} side="home" />
-          <div className="flex items-center gap-3" aria-hidden="true">
-            <span className="bg-border h-px flex-1" />
-            <span className="font-display text-muted-foreground text-sm">vs</span>
-            <span className="bg-border h-px flex-1" />
+          <div className="flex items-center gap-3">
+            <span className="bg-border h-px flex-1" aria-hidden="true" />
+            <span className="font-display text-muted-foreground text-sm">
+              <span aria-hidden="true">vs</span>
+              <span className="sr-only">gegen</span>
+            </span>
+            <span className="bg-border h-px flex-1" aria-hidden="true" />
           </div>
           <TeamLine team={away} side="away" />
         </div>

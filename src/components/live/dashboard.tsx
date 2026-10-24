@@ -202,8 +202,8 @@ function MyNextMatch({ data, idx }: { data: AnySnapshot; idx: SnapshotIndex }) {
     <Section title="Mein nächstes Spiel">
       <Link
         href={`/matches/${match.id}`}
+        // No aria-label: the name comes from the visible content (axe label-content-name-mismatch).
         className="group block rounded-2xl focus-visible:outline-offset-4"
-        aria-label={`Mein nächstes Spiel: ${match.label}, gegen ${opponent?.name ?? "noch offen"}. ${when.text}`}
       >
         <article
           className={cn(

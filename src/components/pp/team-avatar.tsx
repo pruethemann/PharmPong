@@ -16,21 +16,33 @@ const sizes = {
   xl: "size-28 text-4xl",
 };
 
-/** Team logo, falling back to initials on a flask-coloured tile. */
+/**
+ * Team logo, falling back to initials on a flask-coloured tile.
+ * `muted`: de-emphasised (e.g. the losing side) while keeping text contrast ≥ 4.5:1;
+ * use it instead of lowering the opacity of a row that contains the avatar.
+ */
 export function TeamAvatar({
   name,
   logoUrl,
   side,
   size = "md",
+  muted = false,
   className,
 }: {
   name: string;
   logoUrl?: string | null;
   side?: TeamSide;
   size?: keyof typeof sizes;
+  muted?: boolean;
   className?: string;
 }) {
-  const ring = side === "home" ? "ring-team-home" : side === "away" ? "ring-team-away" : "ring-border";
+  const ring = muted
+    ? "ring-border"
+    : side === "home"
+      ? "ring-team-home"
+      : side === "away"
+        ? "ring-team-away"
+        : "ring-border";
   return (
     <span
       className={cn(
@@ -43,16 +55,19 @@ export function TeamAvatar({
     >
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- served by our own logo route
-        <img src={logoUrl} alt="" className="size-full object-cover" />
+        <img src={logoUrl} alt="" className={cn("size-full object-cover", muted && "opacity-60 grayscale")} />
       ) : (
         <span
           className={cn(
             "flex size-full items-center justify-center",
-            side === "away"
-              ? "bg-team-away/20 text-team-away"
-              : side === "home"
-                ? "bg-team-home/20 text-team-home"
-                : "bg-primary/15 text-primary",
+            // Tile tint ≤ 12 %: initials keep ≥ 4.5:1 against it (axe color-contrast).
+            muted
+              ? "text-muted-foreground"
+              : side === "away"
+                ? "bg-team-away/12 text-team-away"
+                : side === "home"
+                  ? "bg-team-home/12 text-team-home"
+                  : "bg-primary/12 text-primary",
           )}
         >
           {initials(name)}

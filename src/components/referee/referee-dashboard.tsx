@@ -108,7 +108,6 @@ function TableSelector({
             key={t.id}
             type="button"
             aria-pressed={active}
-            aria-label={`Tisch ${t.number}: ${stateText}${action ? ", Aktion nötig" : ""}`}
             onClick={() => onSelect(t.id)}
             className={cn(
               "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-colors",
@@ -132,6 +131,7 @@ function TableSelector({
               <Icon className="size-4" aria-hidden="true" />
               {stateText}
             </span>
+            {action && <span className="sr-only">, Aktion nötig</span>}
             {action && (
               <span
                 aria-hidden="true"

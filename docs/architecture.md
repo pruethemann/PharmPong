@@ -27,13 +27,13 @@ Near-real-time updates come from cheap revision polling.
 
 ## Layers
 
-| Layer | Folder | Rules |
-|---|---|---|
-| Domain | `src/server/domain` | Pure TypeScript. State machines (`tournament-state`, `match-state`), secure draw, bracket template and slot resolution, result validation, standings and tiebreaks, scheduler, timer. An ESLint rule forbids importing Prisma, Next or React here. ≥ 95% unit-test coverage. |
-| Services | `src/server/services` | One function per use case, signature `(actor, input, opts?)`. Each calls `assertRole` (defense in depth), runs inside `withTournamentTx`, validates transitions with the domain, writes `AuditLog` (+ `MatchEvent` for matches), and throws `DomainError(code)`. |
-| Actions | `src/server/actions` | Thin `"use server"` wrappers built with `defineAction({schema, access, handler})`: Zod parsing, role gate, `mustChangePassword` gate, mapping `DomainError` to German messages, returning `ActionResult`. |
-| Routes | `src/app` | Pages call `requirePageUser(role)`. Route handlers: `/api/health`, `/api/live`, `/api/live/public`, `/api/logos/[teamId]`, `/api/admin/export`. |
-| UI | `src/components` | `ui/` is shadcn (Base UI). `pp/` holds the design-system primitives. Feature folders: `auth/`, `team/`, `referee/`, `match/`, `live/`, `bracket/`, `standings/`, `display/`, `admin/`. |
+| Layer    | Folder                | Rules                                                                                                                                                                                                                                                                        |
+| -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain   | `src/server/domain`   | Pure TypeScript. State machines (`tournament-state`, `match-state`), secure draw, bracket template and slot resolution, result validation, standings and tiebreaks, scheduler, timer. An ESLint rule forbids importing Prisma, Next or React here. ≥ 95% unit-test coverage. |
+| Services | `src/server/services` | One function per use case, signature `(actor, input, opts?)`. Each calls `assertRole` (defense in depth), runs inside `withTournamentTx`, validates transitions with the domain, writes `AuditLog` (+ `MatchEvent` for matches), and throws `DomainError(code)`.             |
+| Actions  | `src/server/actions`  | Thin `"use server"` wrappers built with `defineAction({schema, access, handler})`: Zod parsing, role gate, `mustChangePassword` gate, mapping `DomainError` to German messages, returning `ActionResult`.                                                                    |
+| Routes   | `src/app`             | Pages call `requirePageUser(role)`. Route handlers: `/api/health`, `/api/live`, `/api/live/public`, `/api/logos/[teamId]`, `/api/admin/export`.                                                                                                                              |
+| UI       | `src/components`      | `ui/` is shadcn (Base UI). `pp/` holds the design-system primitives. Feature folders: `auth/`, `team/`, `referee/`, `match/`, `live/`, `bracket/`, `standings/`, `display/`, `admin/`.                                                                                       |
 
 ## Consistency and concurrency
 
@@ -57,14 +57,15 @@ Every committed mutation increments `Tournament.revision`. Clients poll `GET /ap
 
 Public and authenticated snapshots are separate shapes (`src/lib/live-types.ts`):
 
-| Snapshot | Contains | Never contains |
-|---|---|---|
-| Public (`/api/live/public`) | team names, mottos, logos, member display names | e-mails, invite codes, internal data |
-| Authenticated | the public data plus `me` and `myNextMatchId` | |
-| Authenticated, referee/admin | per-match `version` / `resultRevision` / proposal / open issue, scheduler suggestions | |
-| Authenticated, admin | unresolved ties, pending confirmations | |
+| Snapshot                     | Contains                                                                              | Never contains                       |
+| ---------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------ |
+| Public (`/api/live/public`)  | team names, mottos, logos, member display names                                       | e-mails, invite codes, internal data |
+| Authenticated                | the public data plus `me` and `myNextMatchId`                                         |                                      |
+| Authenticated, referee/admin | per-match `version` / `resultRevision` / proposal / open issue, scheduler suggestions |                                      |
+| Authenticated, admin         | unresolved ties, pending confirmations                                                |                                      |
 
 `useLive` (`src/lib/use-live.ts`):
+
 - pauses polling in hidden tabs and refetches on focus or reconnect;
 - backs off exponentially on errors;
 - exposes `online | reconnecting | offline`, shown by `ConnectionBadge`.
@@ -73,16 +74,16 @@ Public and authenticated snapshots are separate shapes (`src/lib/live-types.ts`)
 
 Custom database sessions (the spec allows "an equivalent secure implementation"). Auth.js credentials would force JWTs, which delay role changes and deactivation.
 
-| Aspect | Implementation |
-|---|---|
-| Token storage | 32-byte random token in the `pp_session` cookie (HttpOnly, Secure on https, SameSite=Lax, 14 days, sliding). The database stores only `sha256(token)`. |
-| Freshness | The user's role and active flag are read on every request, so demotion and deactivation apply immediately. Password change, reset and deactivation also revoke sessions. |
-| Passwords | Argon2id (`@node-rs/argon2`, m=19 MiB, t=2). Unknown e-mails run a dummy verify, so timing does not reveal accounts. |
-| Brute force | `AuthThrottle` (atomic upsert): 5 failed logins per e-mail per 15 min, loose per-IP limits (venue NAT), plus limits on registration, invite-code guessing and reset redemption. |
-| Recovery | Admin-generated one-time reset links (30 min). Break-glass CLI: `scripts/reset-admin-password.ts`. |
-| Initial admin | Created from `ADMIN_EMAIL` / `ADMIN_INITIAL_PASSWORD` by `scripts/seed-admin.ts` during pre-deploy. It must change the password on first login. |
-| Registration | Always creates a `PLAYER`. Roles are never read from input. |
-| Proxy | `src/proxy.ts` only redirects missing cookies on protected paths. Real checks happen in pages, actions and services. |
+| Aspect        | Implementation                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Token storage | 32-byte random token in the `pp_session` cookie (HttpOnly, Secure on https, SameSite=Lax, 14 days, sliding). The database stores only `sha256(token)`.                          |
+| Freshness     | The user's role and active flag are read on every request, so demotion and deactivation apply immediately. Password change, reset and deactivation also revoke sessions.        |
+| Passwords     | Argon2id (`@node-rs/argon2`, m=19 MiB, t=2). Unknown e-mails run a dummy verify, so timing does not reveal accounts.                                                            |
+| Brute force   | `AuthThrottle` (atomic upsert): 5 failed logins per e-mail per 15 min, loose per-IP limits (venue NAT), plus limits on registration, invite-code guessing and reset redemption. |
+| Recovery      | Admin-generated one-time reset links (30 min). Break-glass CLI: `scripts/reset-admin-password.ts`.                                                                              |
+| Initial admin | Created from `ADMIN_EMAIL` / `ADMIN_INITIAL_PASSWORD` by `scripts/seed-admin.ts` during pre-deploy. It must change the password on first login.                                 |
+| Registration  | Always creates a `PLAYER`. Roles are never read from input.                                                                                                                     |
+| Proxy         | `src/proxy.ts` only redirects missing cookies on protected paths. Real checks happen in pages, actions and services.                                                            |
 
 ## Tournament flow
 
@@ -101,17 +102,18 @@ READY/ASSIGNED/IN_PROGRESS/AWAITING → FORFEITED (admin) · abort (admin) → R
 ```
 
 **Corrections.** A correction recomputes the expected knockout slots (`bracket.expectedKnockoutSlots`):
+
 - If an affected downstream match has not started, the correction propagates automatically.
 - Otherwise the service raises `DOWNSTREAM_STARTED`, and only the audited recovery workflow (`executeRecovery`, typed confirmation) can void the affected chain.
 
 ## Files worth knowing
 
-| File | Why |
-|---|---|
-| `src/server/services/tx.ts` | lock, revision bump, retry |
-| `src/server/services/state.ts` | loads a tournament into domain views (standings, qualifiers) |
-| `src/server/services/results.ts` | propose, confirm, advance, champion |
-| `src/server/services/corrections.ts` | correction and recovery |
-| `src/server/domain/standings.ts` | ranking rules |
-| `src/server/services/live-snapshot.ts` | polling API |
-| `scripts/dev-scenario.ts` | realistic data states for development and demos |
+| File                                   | Why                                                          |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `src/server/services/tx.ts`            | lock, revision bump, retry                                   |
+| `src/server/services/state.ts`         | loads a tournament into domain views (standings, qualifiers) |
+| `src/server/services/results.ts`       | propose, confirm, advance, champion                          |
+| `src/server/services/corrections.ts`   | correction and recovery                                      |
+| `src/server/domain/standings.ts`       | ranking rules                                                |
+| `src/server/services/live-snapshot.ts` | polling API                                                  |
+| `scripts/dev-scenario.ts`              | realistic data states for development and demos              |

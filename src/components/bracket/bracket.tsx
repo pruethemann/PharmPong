@@ -97,13 +97,15 @@ function Slot({
       className={cn(
         "flex min-w-0 items-center gap-[0.5em]",
         big ? "h-[2.6em]" : "h-[2.25em]",
-        state === "loser" && "opacity-50",
+        // No opacity on the losing row: it would push text below 4.5:1 contrast.
+        state === "loser" && "text-muted-foreground",
       )}
     >
       {team ? (
         <TeamAvatar
           name={team.name}
           logoUrl={team.logoUrl}
+          muted={state === "loser"}
           className={cn(
             "size-[1.75em] rounded-[0.5em] text-[0.7em] ring-[0.1em]",
             state === "winner" && "ring-gold",
@@ -175,6 +177,9 @@ function Node({
             variant === "display" ? "text-[0.95em]" : "text-[0.85em]",
           )}
         >
+          {/* Link name comes from the content (axe label-content-name-mismatch); the sr-only bits
+              give screen readers the same sentence the old aria-label had. */}
+          <span className="sr-only">{match.label}: </span>
           {shortCode(match.code)}
           {note && (
             <span className="text-gold truncate font-sans text-[0.9em] font-semibold tracking-normal">
@@ -191,6 +196,7 @@ function Node({
         state={stateOf(home)}
         variant={variant}
       />
+      <span className="sr-only"> gegen </span>
       <Slot
         team={away}
         source={match.awaySource}
@@ -203,7 +209,6 @@ function Node({
   return interactive ? (
     <Link
       href={`/matches/${match.id}`}
-      aria-label={describe}
       className="group/node block w-full rounded-[0.9em] focus-visible:outline-offset-4"
     >
       {body}

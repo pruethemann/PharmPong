@@ -20,12 +20,19 @@ export function BigTimer({
   size?: "md" | "lg" | "xl";
   className?: string;
 }) {
-  const [now, setNow] = useState(() => Date.now());
+  // null until mounted: the server render must not depend on the clock (hydration).
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 250);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
   }, []);
-  const state = computeTimer(timer, now + clockOffsetMs);
+  const reference = now ?? timer.endedAt ?? timer.pausedAt ?? timer.startedAt ?? 0;
+  const state = computeTimer(timer, reference + (now == null ? 0 : clockOffsetMs));
   const warn = !state.isOverTime && state.remainingMs <= 60_000 && timer.startedAt != null;
 
   return (
@@ -51,7 +58,7 @@ export function BigTimer({
           className="bg-destructive font-display text-destructive-foreground inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-lg"
           role="status"
         >
-          <AlarmClock className="size-5" aria-hidden="true" /> Zeit abgelaufen: Runde fertig spielen
+          <AlarmClock className="size-5" aria-hidden="true" /> Zeit abgelaufen: Zugpaar fertig spielen
         </span>
       ) : state.paused ? (
         <span className="bg-warning font-display text-warning-foreground inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-lg">

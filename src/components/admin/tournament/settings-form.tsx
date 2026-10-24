@@ -153,7 +153,8 @@ export function SettingsForm({
           aria-readonly={runningMatches > 0 || undefined}
           className={cn(
             "max-w-40",
-            runningMatches > 0 && "text-muted-foreground cursor-not-allowed opacity-60",
+            // No opacity here: read-only text must keep 4.5:1 contrast.
+            runningMatches > 0 && "text-muted-foreground cursor-not-allowed",
           )}
           {...register("durationMin", { valueAsNumber: true })}
         />
