@@ -28,7 +28,7 @@ const _register = defineAction({
     const { token, expiresAt, user } = await auth.registerUser(input, {
       ip: await clientIp(),
       userAgent: await userAgent(),
-      requiredEventCode: env().EVENT_CODE || undefined,
+      requiredEventCode: env().EVENT_CODE.trim() || undefined,
     });
     await setSessionCookie(token, expiresAt);
     return { userId: user.id };

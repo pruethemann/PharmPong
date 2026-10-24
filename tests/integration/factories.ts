@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import { normalizeTeamName } from "@/lib/validation/team";
 import type { Role } from "@/generated/prisma/enums";
 
 let seq = 0;
@@ -43,7 +44,7 @@ export async function makeTeam(tournamentId: string, memberIds: string[] = [], n
     data: {
       tournamentId,
       name: teamName,
-      nameNormalized: teamName.toLowerCase(),
+      nameNormalized: normalizeTeamName(teamName),
       inviteCode: `INV${n.toString().padStart(5, "0")}`,
       createdById: memberIds[0] ?? "seed",
     },

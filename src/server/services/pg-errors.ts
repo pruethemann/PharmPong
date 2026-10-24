@@ -57,7 +57,7 @@ export function toDomainError(e: unknown): DomainError {
     if (/teamId/.test(s) && /ActiveTeamMatch/.test(s)) return new DomainError("TEAM_BUSY");
     return new DomainError("STALE_VERSION", "unique violation");
   }
-  if (c === "23514") return new DomainError("INVALID_STATE", "check constraint violated");
+  if (c === "23514") return new DomainError("INVALID_STATE");
   if (c === "P2025") return new DomainError("NOT_FOUND");
   return new DomainError("INTERNAL", e instanceof Error ? e.message : String(e));
 }

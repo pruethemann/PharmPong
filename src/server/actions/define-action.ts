@@ -12,6 +12,20 @@ type Access = "public" | Role;
 
 const RANK: Record<Role, number> = { PLAYER: 0, REFEREE: 1, ADMIN: 2 };
 
+/** Codes whose DomainError message is user-facing German text written by the domain/service layer. */
+const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
+  "VALIDATION",
+  "INVALID_RESULT",
+  "INVALID_STATE",
+  "INVALID_TRANSITION",
+  "WRONG_TEAM_COUNT",
+  "NOT_FOUND",
+  "INVALID_CREDENTIALS",
+  "CONFIRMATION_REQUIRED",
+  "UNRESOLVED_TIE",
+  "DOWNSTREAM_STARTED",
+]);
+
 /**
  * Wrap a Server Action: validate input with Zod, enforce role, map DomainErrors
  * to German messages. Success is only returned after the handler's transaction committed.
@@ -53,10 +67,12 @@ export function defineAction<S extends z.ZodType, R>(config: {
       }
       const err = isDomainError(e) ? e : toDomainError(e);
       if (err.code === "INTERNAL") console.error("[action] internal error", e);
+      // Domain errors may carry a specific German message (e.g. why a result is invalid).
+      const specific = err.message && err.message !== err.code && DOMAIN_MESSAGE_CODES.has(err.code);
       return {
         ok: false,
         code: err.code as ErrorCode,
-        message: errorMessage[err.code] ?? err.message,
+        message: specific ? err.message : (errorMessage[err.code] ?? err.message),
         details: err.details,
       };
     }

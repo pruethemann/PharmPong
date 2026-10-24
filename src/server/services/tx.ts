@@ -47,7 +47,7 @@ export async function withTournamentTx<T>(
             SELECT id, status, "isPaused", revision, "matchDurationSec", now() AS now
             FROM "Tournament" WHERE id = ${tournamentId} FOR UPDATE`;
           const row = rows[0];
-          if (!row) fail("NOT_FOUND", "Tournament not found");
+          if (!row) fail("NOT_FOUND", "Turnier nicht gefunden.");
           const { now, ...tournament } = row;
           const ctx: TxContext = { tournament, now, dirty: true };
           const result = await fn(tx, ctx);

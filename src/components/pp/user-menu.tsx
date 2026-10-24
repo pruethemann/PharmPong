@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { LogIn, LogOut, UserRound } from "lucide-react";
 import { logoutAction } from "@/server/actions/auth";
 import { roleLabel, type RoleKey } from "@/lib/i18n/de";
@@ -18,6 +19,7 @@ import {
 
 export function UserMenu({ user }: { user: { displayName: string; email: string; role: RoleKey } | null }) {
   const [pending, start] = useTransition();
+  const router = useRouter();
   if (!user) {
     return (
       <Link href="/login" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -47,7 +49,8 @@ export function UserMenu({ user }: { user: { displayName: string; email: string;
           onClick={() =>
             start(async () => {
               await logoutAction();
-              window.location.href = "/";
+              router.replace("/");
+              router.refresh();
             })
           }
         >
