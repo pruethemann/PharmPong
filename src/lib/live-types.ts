@@ -1,12 +1,6 @@
 // Contract of the live polling API (/api/live, /api/live/public).
 // The public snapshot must never contain e-mail addresses, invite codes or other private data.
-import type {
-  EndTypeKey,
-  MatchStatusKey,
-  RoleKey,
-  TableStateKey,
-  TournamentStatusKey,
-} from "@/lib/i18n/de";
+import type { EndTypeKey, MatchStatusKey, RoleKey, TableStateKey, TournamentStatusKey } from "@/lib/i18n/de";
 
 export type LiveTeam = {
   id: string;
@@ -145,4 +139,5 @@ export type AuthedExtras = {
 
 export type AuthedSnapshot = PublicSnapshot & AuthedExtras;
 
-export type LiveResponse<T> = { unchanged: true; revision: number; serverNow: number } | ({ unchanged: false } & T);
+export type LiveResponse<T> =
+  { unchanged: true; revision: number; serverNow: number } | ({ unchanged: false } & T);

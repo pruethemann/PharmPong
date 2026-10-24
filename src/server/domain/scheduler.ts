@@ -17,15 +17,26 @@ function busyTeams(matches: MatchView[], exceptMatchId?: string): Set<string> {
 
 const stageRank = (m: MatchView) => (m.stage === "GROUP" ? 0 : 1);
 
+/** Earlier "last played" first; -Infinity (never played) ties with itself. */
+const compareRest = (a: number, b: number) => (a === b ? 0 : a < b ? -1 : 1);
+
+/** End time of each team's most recent decided match (ms). */
+function lastPlayedAt(matches: MatchView[]): Map<string, number> {
+  const last = new Map<string, number>();
+  for (const m of matches) {
+    if (!isDecidedStatus(m.status) || m.endedAt === null) continue;
+    for (const t of teamsOf(m)) last.set(t, Math.max(last.get(t) ?? -Infinity, m.endedAt));
+  }
+  return last;
+}
+
 /**
- * Suggests table assignments: earliest READY matches (group stage first, then
- * round, then play order) on free tables in table-number order. Never suggests
- * a busy team or one team twice.
- *
- * There is deliberately no "longest rest" criterion: orderIndex is unique per
- * tournament (1..19), so a rest tie-breaker after it could never take effect.
- * The fixture order itself already interleaves groups so consecutive matches
- * never share a team.
+ * Suggests table assignments: earliest READY matches on free tables in
+ * table-number order (docs/tournament-rules.md §6). Order: group stage first,
+ * then the earliest round, then the match whose teams have rested longest
+ * (the more recently active of its two teams finished earliest; teams that have
+ * not played yet count as fully rested), then play order. Never suggests a busy
+ * team or one team twice.
  */
 export function suggestAssignments(matches: MatchView[], tables: TableView[]): Assignment[] {
   const occupied = new Set(
@@ -37,6 +48,8 @@ export function suggestAssignments(matches: MatchView[], tables: TableView[]): A
   if (freeTables.length === 0) return [];
 
   const busy = busyTeams(matches);
+  const last = lastPlayedAt(matches);
+  const recentOf = (m: MatchView) => Math.max(...teamsOf(m).map((t) => last.get(t) ?? -Infinity));
   const candidates = matches
     .filter(
       (m) =>
@@ -50,6 +63,7 @@ export function suggestAssignments(matches: MatchView[], tables: TableView[]): A
       (a, b) =>
         stageRank(a) - stageRank(b) ||
         a.round - b.round ||
+        compareRest(recentOf(a), recentOf(b)) ||
         a.orderIndex - b.orderIndex ||
         a.id.localeCompare(b.id),
     );

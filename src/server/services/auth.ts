@@ -17,6 +17,9 @@ function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
+/** Reserved for demo / simulation accounts; never available for self-registration. */
+export const RESERVED_EMAIL_DOMAIN = "pharmapong.test";
+
 export async function registerUser(
   input: { email: string; displayName: string; password: string; eventCode?: string },
   meta: { ip: string; userAgent: string | null; requiredEventCode?: string },
@@ -27,6 +30,9 @@ export async function registerUser(
   await hit(ipKey, RULES.register, client);
   if (meta.requiredEventCode && !safeEqual((input.eventCode ?? "").trim(), meta.requiredEventCode)) {
     fail("VALIDATION", "Falscher Event-Code.", { field: "eventCode" });
+  }
+  if (input.email.trim().toLowerCase().endsWith(`@${RESERVED_EMAIL_DOMAIN}`)) {
+    fail("VALIDATION", "Diese E-Mail-Adresse ist reserviert.", { field: "email" });
   }
   const passwordHash = await hashPassword(input.password);
   const user = await withTx(
@@ -127,6 +133,13 @@ export async function updateProfile(actor: Actor, input: { displayName: string }
         select: { displayName: true },
       });
       await tx.user.update({ where: { id: actor.id }, data: { displayName: input.displayName } });
+      if (before.displayName !== input.displayName) {
+        // Live snapshots (cached per tournament revision) show member names:
+        // bump the revision of every tournament this user plays in.
+        await tx.$executeRaw`
+          UPDATE "Tournament" SET revision = revision + 1, "updatedAt" = now()
+          WHERE id IN (SELECT "tournamentId" FROM "TeamMember" WHERE "userId" = ${actor.id} AND "leftAt" IS NULL)`;
+      }
       await writeAudit(tx, {
         actorId: actor.id,
         action: "user.profile_update",

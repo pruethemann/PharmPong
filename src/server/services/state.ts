@@ -26,7 +26,11 @@ export type TournamentState = {
   qualifiers: Qualifiers | null;
 };
 
-export function toMatchView(m: Match, codeById: Map<string, string>, groupNameById: Map<string, string>): LoadedMatch {
+export function toMatchView(
+  m: Match,
+  codeById: Map<string, string>,
+  groupNameById: Map<string, string>,
+): LoadedMatch {
   const decided = DECIDED_MATCH_STATUSES.includes(m.status);
   const result: MatchResult | null =
     decided && m.winnerTeamId && m.homeCupsRemaining != null && m.awayCupsRemaining != null && m.endType
@@ -99,7 +103,11 @@ export async function loadTournamentState(client: Db | Tx, tournamentId: string)
 
   return {
     tournament,
-    groups: groups.map((g) => ({ id: g.id, name: g.name as GroupName, teamIds: g.assignments.map((a) => a.teamId) })),
+    groups: groups.map((g) => ({
+      id: g.id,
+      name: g.name as GroupName,
+      teamIds: g.assignments.map((a) => a.teamId),
+    })),
     matches: views,
     tables: tables.map((t) => ({ id: t.id, number: t.number, name: t.name, isDisabled: t.isDisabled })),
     tiebreaks,

@@ -82,9 +82,9 @@ describe("suggestAssignments", () => {
     ]);
   });
 
-  it("follows play order even when an earlier match has less-rested teams", () => {
-    // Round 2 of a real draw: A-2 (orderIndex 5) and B-2 (orderIndex 6).
-    // Team a played very recently, team c long ago: play order still wins.
+  it("within a round prefers the match whose teams rested longest", () => {
+    // Round 2: A-2 (orderIndex 5) has team a, which finished very recently;
+    // B-2 (orderIndex 6) has team c, which finished long ago → B-2 first.
     const ms = [
       mv({ id: "A-1", status: "COMPLETED", homeTeamId: "a", awayTeamId: "b", endedAt: 5000 }),
       mv({
@@ -99,8 +99,30 @@ describe("suggestAssignments", () => {
       mv({ id: "B-2", round: 2, orderIndex: 6, group: "B", homeTeamId: "e", awayTeamId: "c" }),
       mv({ id: "A-2", round: 2, orderIndex: 5, homeTeamId: "f", awayTeamId: "a" }),
     ];
-    expect(suggestAssignments(ms, [T1]).map((a) => a.matchId)).toEqual(["A-2"]);
-    expect(suggestAssignments(ms, [T1, T2]).map((a) => a.matchId)).toEqual(["A-2", "B-2"]);
+    expect(suggestAssignments(ms, [T1]).map((a) => a.matchId)).toEqual(["B-2"]);
+    expect(suggestAssignments(ms, [T1, T2]).map((a) => a.matchId)).toEqual(["B-2", "A-2"]);
+  });
+
+  it("rest never beats an earlier round, and play order breaks rest ties", () => {
+    const ms = [
+      mv({ id: "X", status: "COMPLETED", homeTeamId: "a", awayTeamId: "z", endedAt: 9000 }),
+      mv({ id: "R1", round: 1, orderIndex: 3, homeTeamId: "a", awayTeamId: "b" }),
+      mv({ id: "R2a", round: 2, orderIndex: 5, homeTeamId: "c", awayTeamId: "d" }),
+      mv({ id: "R2b", round: 2, orderIndex: 4, homeTeamId: "e", awayTeamId: "f" }),
+    ];
+    expect(suggestAssignments(ms, [T1, T2]).map((a) => a.matchId)).toEqual(["R1", "R2b"]);
+  });
+
+  it("does not schedule a team back-to-back in the knockout stage when others rested longer", () => {
+    // D-3 (D2 vs D3) finished last; QF3 (C1 vs D2) precedes QF4 (D1 vs C2) in play order.
+    const ms = [
+      mv({ id: "C-3", status: "COMPLETED", round: 3, homeTeamId: "c1", awayTeamId: "c2", endedAt: 2000 }),
+      mv({ id: "D-2", status: "COMPLETED", round: 2, homeTeamId: "d1", awayTeamId: "d3", endedAt: 1000 }),
+      mv({ id: "D-3", status: "COMPLETED", round: 3, homeTeamId: "d2", awayTeamId: "d3", endedAt: 3000 }),
+      mv({ id: "QF3", stage: "KNOCKOUT", round: 1, orderIndex: 15, homeTeamId: "c1", awayTeamId: "d2" }),
+      mv({ id: "QF4", stage: "KNOCKOUT", round: 1, orderIndex: 16, homeTeamId: "d1", awayTeamId: "c2" }),
+    ];
+    expect(suggestAssignments(ms, [T1]).map((a) => a.matchId)).toEqual(["QF4"]);
   });
 
   it("property: suggestions over a full draw never reuse tables or teams and skip busy teams", () => {

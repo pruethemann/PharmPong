@@ -64,6 +64,7 @@ export async function logoutAction(): Promise<{ ok: true }> {
 const _changePassword = defineAction({
   schema: changePasswordSchema,
   access: "PLAYER",
+  allowPendingPasswordChange: true,
   handler: async (input, { user }) => auth.changePassword(user!, input, await currentSessionId()),
 });
 export async function changePasswordAction(input: z.input<typeof changePasswordSchema>) {

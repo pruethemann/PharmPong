@@ -55,7 +55,7 @@ export function toDomainError(e: unknown): DomainError {
     if (/email/i.test(s)) return new DomainError("EMAIL_TAKEN");
     if (/nameNormalized/i.test(s)) return new DomainError("NAME_TAKEN");
     if (/teamId/.test(s) && /ActiveTeamMatch/.test(s)) return new DomainError("TEAM_BUSY");
-    return new DomainError("STALE_VERSION", "unique violation");
+    return new DomainError("STALE_VERSION", undefined, { cause: "unique_violation" });
   }
   if (c === "23514") return new DomainError("INVALID_STATE");
   if (c === "P2025") return new DomainError("NOT_FOUND");

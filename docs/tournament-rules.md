@@ -50,7 +50,7 @@ Teams advance only after the referee has **confirmed** the result.
 - The **match clock starts when the referee presses "Spiel starten"**. The server clock is authoritative, so every phone and the projector show the same time.
 - The referee may pause the clock (for example a spilled cup or a re-rack dispute). Paused time does not count.
 - At **15:00** every screen shows **"Zeit abgelaufen"**. The current pair of turns is completed, so both teams have had the same number of turns.
-- The referee then decides the winner on **remaining cups**: the team with **fewer** of its own cups left wins (`TIME_LIMIT`).
+- The referee then decides the winner on **remaining cups**: the team that has hit **more** opponent cups, i.e. has **more of its own cups still standing**, wins (`TIME_LIMIT`).
 - **Tie on remaining cups → shootout** (`SHOOTOUT`):
   - Teams alternate equal numbers of attempts (one ball each, same distance).
   - After both teams have taken the same number of attempts, a team that has hit while the other missed wins.
@@ -101,19 +101,26 @@ The software never picks a winner of a persistent tie by itself. The knockout st
 - Two tables. A table is _Frei_, _Reserviert_ (match assigned), _Spiel läuft_, or _Gesperrt_.
 - When a table is free, the system suggests the earliest eligible match: both teams known, neither team currently playing, earliest round first, then the team that has rested longest.
 - Group matches are interleaved across groups so both tables can always play at the same time.
-- The admin assigns matches (and may override the suggestion). The referee must start each match explicitly. Nothing starts automatically.
+- Referees may put the **suggested** match on their table; the admin may assign any eligible match (override). Referees cannot undo an admin override. The referee must start each match explicitly. Nothing starts automatically.
+- Rest criterion as implemented: among equally eligible matches of the same round, the match whose more recently active team has rested longest is preferred.
 
 ## 7. Corrections & recovery 🏠
 
 - Admins can correct confirmed results. Every correction requires a reason and is audited.
 - If the correction changes who advances and the affected next match has **not started**, the bracket updates automatically.
-- If an affected downstream match **has started or finished**, the correction is blocked. The admin must use the **recovery wizard**, which voids the affected downstream matches (with typed confirmation), applies the correction, and re-seeds the bracket. History is never deleted; all voided results remain in the audit log.
+- If an affected downstream match **has started or finished**, the correction is blocked.
+- Recovery voids only the matches that are actually affected (the corrected match's downstream chain). A group correction during the knockout stage voids only the quarterfinals whose qualifiers changed, plus their downstream matches. Only if the correction creates an unresolved group tie is the whole knockout stage voided and the tournament returned to the group stage.
+- A full **draw reset** (typed confirmation `AUSLOSUNG ZURÜCKSETZEN`) snapshots all groups, matches and match events into the audit log before deleting the fixtures. The admin must use the **recovery wizard**, which voids the affected downstream matches (with typed confirmation), applies the correction, and re-seeds the bracket. History is never deleted; all voided results remain in the audit log.
 
 ## 8. Forfeits 🏠
 
 An admin can record a forfeit (e.g. a team is absent) for a match that is not yet completed. The present team wins 10:0 in cup statistics. Absent players can also be replaced by the admin at any time without affecting fixtures.
 
-## 9. Fair play & safety
+## 9. Referee conflicts of interest
+
+A referee who is an active member of one of the two teams cannot start, enter or confirm that match. Admins can.
+
+## 10. Fair play & safety
 
 - Referees' decisions are final at the table. Disputes go to the tournament admin.
 - Drink responsibly, or don't drink at all. Non-alcoholic options are explicitly welcome, and a cup of water counts exactly like any other cup.

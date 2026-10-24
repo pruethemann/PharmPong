@@ -2,15 +2,11 @@ import "server-only";
 import { z } from "zod";
 import { getCurrentUser, touchSession } from "@/server/auth/current";
 import type { SessionUser } from "@/server/auth/sessions";
-import { DomainError, isDomainError, type ErrorCode } from "@/server/domain/errors";
+import { isDomainError, type ErrorCode } from "@/server/domain/errors";
 import { toDomainError } from "@/server/services/pg-errors";
 import { errorMessage } from "@/lib/i18n/de";
-import type { Role } from "@/generated/prisma/enums";
 import type { ActionResult } from "@/lib/action-result";
-
-type Access = "public" | Role;
-
-const RANK: Record<Role, number> = { PLAYER: 0, REFEREE: 1, ADMIN: 2 };
+import { accessError, type Access } from "./access";
 
 /** Codes whose DomainError message is user-facing German text written by the domain/service layer. */
 const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
@@ -24,6 +20,12 @@ const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
   "CONFIRMATION_REQUIRED",
   "UNRESOLVED_TIE",
   "DOWNSTREAM_STARTED",
+  "FORBIDDEN",
+  "STALE_VERSION",
+  "TABLE_BUSY",
+  "TABLE_DISABLED",
+  "TOURNAMENT_PAUSED",
+  "GROUPS_INCOMPLETE",
 ]);
 
 /**
@@ -33,15 +35,17 @@ const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
 export function defineAction<S extends z.ZodType, R>(config: {
   schema: S;
   access: Access;
+  /** Usable while the user still has to change the initial password (only the password change). */
+  allowPendingPasswordChange?: boolean;
   handler: (input: z.infer<S>, ctx: { user: SessionUser | null }) => Promise<R>;
 }): (input: z.input<S>) => Promise<ActionResult<R>> {
   return async (raw) => {
     try {
       const user = await getCurrentUser();
-      if (config.access !== "public") {
-        if (!user) throw new DomainError("UNAUTHENTICATED");
-        if (RANK[user.role] < RANK[config.access]) throw new DomainError("FORBIDDEN");
-      }
+      const denied = accessError(user, config.access, {
+        allowPendingPasswordChange: config.allowPendingPasswordChange,
+      });
+      if (denied) throw denied;
       const parsed = config.schema.safeParse(raw);
       if (!parsed.success) {
         const fieldErrors: Record<string, string> = {};

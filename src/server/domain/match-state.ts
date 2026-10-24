@@ -35,6 +35,9 @@ const RECOVERY_EDGES: readonly Edge[] = [
   ["ASSIGNED", "READY"],
   ["IN_PROGRESS", "READY"],
   ["AWAITING_CONFIRMATION", "READY"],
+  // Admin result correction that changes the end type to/from FORFEIT.
+  ["COMPLETED", "FORFEITED"],
+  ["FORFEITED", "COMPLETED"],
 ];
 
 const hasEdge = (edges: readonly Edge[], from: MatchStatus, to: MatchStatus) =>

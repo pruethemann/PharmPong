@@ -50,3 +50,30 @@ export async function ensureAdmin(
   });
   return { created: true, promoted: false };
 }
+
+/**
+ * Create an admin account only if the address is unused. Unlike ensureAdmin it
+ * never promotes an existing account (for service accounts such as the
+ * simulation admin, whose address someone could have self-registered).
+ */
+export async function createAdminIfMissing(
+  email: string,
+  initialPassword: string,
+  client: Db = db,
+): Promise<{ created: boolean }> {
+  const normalized = email.trim().toLowerCase();
+  const passwordHash = await hashPassword(initialPassword);
+  const r = await client.user.createMany({
+    data: [
+      {
+        email: normalized,
+        displayName: "Turnierleitung",
+        passwordHash,
+        role: "ADMIN",
+        mustChangePassword: true,
+      },
+    ],
+    skipDuplicates: true,
+  });
+  return { created: r.count === 1 };
+}
