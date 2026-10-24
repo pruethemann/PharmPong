@@ -1,0 +1,357 @@
+// PharmaPong data model.
+// Raw-SQL partial unique indexes and CHECK constraints live in the migrations
+// (see prisma/migrations/*_constraints and docs/database.md). They are asserted
+// by tests/integration/schema-invariants.int.test.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PLAYER
+  REFEREE
+  ADMIN
+}
+
+enum TournamentStatus {
+  DRAFT
+  REGISTRATION_OPEN
+  REGISTRATION_LOCKED
+  GROUP_STAGE
+  KNOCKOUT_STAGE
+  COMPLETED
+  CANCELLED
+}
+
+enum TeamStatus {
+  ACTIVE
+  DISSOLVED
+}
+
+enum Stage {
+  GROUP
+  KNOCKOUT
+}
+
+enum MatchStatus {
+  PENDING
+  READY
+  ASSIGNED
+  IN_PROGRESS
+  AWAITING_CONFIRMATION
+  COMPLETED
+  CANCELLED
+  FORFEITED
+}
+
+enum EndType {
+  REGULAR
+  TIME_LIMIT
+  SHOOTOUT
+  FORFEIT
+}
+
+enum Slot {
+  HOME
+  AWAY
+}
+
+// ─── Users & auth ──────────────────────────────────────────────────────────
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique // always stored lowercased + trimmed
+  displayName        String
+  passwordHash       String
+  role               Role     @default(PLAYER)
+  isActive           Boolean  @default(true)
+  mustChangePassword Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  sessions       Session[]
+  memberships    TeamMember[]
+  passwordResets PasswordReset[] @relation("ResetTarget")
+  refereeMatches Match[]         @relation("MatchReferee")
+}
+
+model Session {
+  id         String   @id // sha256(token) hex; the raw token only lives in the cookie
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  expiresAt  DateTime
+  userAgent  String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordReset {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  userId      String
+  user        User      @relation("ResetTarget", fields: [userId], references: [id], onDelete: Cascade)
+  createdById String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AuthThrottle {
+  key         String    @id
+  count       Int
+  windowStart DateTime
+  lockedUntil DateTime?
+}
+
+// ─── Tournament ────────────────────────────────────────────────────────────
+
+model Tournament {
+  id                   String           @id @default(cuid())
+  name                 String
+  status               TournamentStatus @default(DRAFT)
+  isPaused             Boolean          @default(false)
+  pausedAt             DateTime?
+  publicDisplayEnabled Boolean          @default(false)
+  matchDurationSec     Int              @default(900)
+  bombRuleEnabled      Boolean          @default(false)
+  revision             Int              @default(0) // live-sync cursor, bumped by every mutating tx
+  drawGeneratedAt      DateTime?
+  rosterLockedAt       DateTime?
+  championTeamId       String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  teams          Team[]
+  members        TeamMember[]
+  groups         Group[]
+  tables         GameTable[]
+  matches        Match[]
+  matchEvents    MatchEvent[]
+  auditLogs      AuditLog[]
+  activeTeamLock ActiveTeamMatch[]
+}
+
+model Team {
+  id             String     @id @default(cuid())
+  tournamentId   String
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name           String
+  nameNormalized String
+  motto          String?
+  inviteCode     String     @unique
+  status         TeamStatus @default(ACTIVE)
+  logoKey        String?
+  logoVersion    Int        @default(0)
+  createdById    String
+  version        Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  members         TeamMember[]
+  groupAssignment GroupAssignment?
+  homeMatches     Match[]          @relation("HomeTeam")
+  awayMatches     Match[]          @relation("AwayTeam")
+  wonMatches      Match[]          @relation("WinnerTeam")
+
+  @@unique([tournamentId, nameNormalized])
+  @@index([tournamentId, status])
+}
+
+model TeamMember {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slot         Int // 1 = founder/captain, 2 = partner
+  isReady      Boolean    @default(false)
+  joinedAt     DateTime   @default(now())
+  leftAt       DateTime?
+
+  @@index([teamId])
+  @@index([userId])
+}
+
+model Group {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String // "A" | "B" | "C" | "D"
+
+  assignments GroupAssignment[]
+  matches     Match[]
+  tiebreaks   GroupTiebreak[]
+
+  @@unique([tournamentId, name])
+}
+
+model GroupAssignment {
+  groupId  String
+  group    Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teamId   String @unique
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  position Int // 1..3, draw order
+
+  @@id([groupId, teamId])
+  @@unique([groupId, position])
+}
+
+// Administrator-recorded ranking shootout for a persistent tie.
+model GroupTiebreak {
+  id             String    @id @default(cuid())
+  groupId        String
+  group          Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teamIds        String[] // sorted tied set
+  orderedTeamIds String[] // decided order, best first
+  basisHash      String // hash of tie set + their stats; a later correction invalidates it
+  recordedById   String
+  note           String?
+  createdAt      DateTime  @default(now())
+  voidedAt       DateTime?
+
+  @@index([groupId])
+}
+
+model GameTable {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  number       Int
+  name         String
+  isDisabled   Boolean    @default(false)
+
+  matches Match[]
+
+  @@unique([tournamentId, number])
+}
+
+// ─── Matches ───────────────────────────────────────────────────────────────
+
+model Match {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  code         String // "A-1".."D-3", "QF1".."QF4", "SF1", "SF2", "F"
+  stage        Stage
+  round        Int // group: 1..3; knockout: 1=QF 2=SF 3=F
+  orderIndex   Int // global play order
+  groupId      String?
+  group        Group?     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  homeTeamId String?
+  homeTeam   Team?   @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String?
+  awayTeam   Team?   @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeSource String? // e.g. "A1", "B2", "W:QF1"
+  awaySource String?
+
+  nextMatchId   String?
+  nextMatch     Match?  @relation("Advancement", fields: [nextMatchId], references: [id])
+  feederMatches Match[] @relation("Advancement")
+  nextSlot      Slot?
+
+  status    MatchStatus @default(PENDING)
+  tableId   String?
+  table     GameTable?  @relation(fields: [tableId], references: [id])
+  refereeId String?
+  referee   User?       @relation("MatchReferee", fields: [refereeId], references: [id])
+
+  assignedAt       DateTime?
+  startedAt        DateTime?
+  pausedAt         DateTime?
+  pausedDurationMs Int       @default(0)
+  endedAt          DateTime?
+
+  // Current (proposed or confirmed) result. Full history lives in AuditLog/MatchEvent.
+  winnerTeamId      String?
+  winnerTeam        Team?     @relation("WinnerTeam", fields: [winnerTeamId], references: [id])
+  homeCupsRemaining Int?
+  awayCupsRemaining Int?
+  endType           EndType?
+  resultRevision    Int       @default(0)
+  proposedAt        DateTime?
+  proposedById      String?
+  confirmedAt       DateTime?
+  confirmedById     String?
+
+  version   Int      @default(0) // optimistic concurrency
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events MatchEvent[]
+
+  @@unique([tournamentId, code])
+  @@unique([tournamentId, orderIndex])
+  @@index([tournamentId, status])
+  @@index([nextMatchId])
+  @@index([tableId])
+}
+
+// One row per team while the team is in an ASSIGNED / IN_PROGRESS /
+// AWAITING_CONFIRMATION match. The primary key guarantees a team can never be
+// in two active matches at once.
+model ActiveTeamMatch {
+  teamId       String     @id
+  matchId      String
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@index([matchId])
+}
+
+model MatchEvent {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matchId      String
+  match        Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  type         String // ASSIGNED, STARTED, PAUSED, RESUMED, PROPOSED, REJECTED, CONFIRMED, CORRECTED, VOIDED, FORFEITED, ISSUE_REPORTED, ...
+  actorId      String?
+  payload      Json?
+  createdAt    DateTime   @default(now())
+
+  @@index([matchId, createdAt])
+}
+
+// ─── Infrastructure ────────────────────────────────────────────────────────
+
+model IdempotencyKey {
+  key         String   @id
+  userId      String
+  scope       String
+  requestHash String
+  response    Json
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id           BigInt      @id @default(autoincrement())
+  tournamentId String?
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  actorId      String?
+  action       String
+  entityType   String
+  entityId     String
+  before       Json?
+  after        Json?
+  reason       String?
+  createdAt    DateTime    @default(now())
+
+  @@index([entityType, entityId])
+  @@index([tournamentId, createdAt])
+}
