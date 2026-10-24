@@ -41,7 +41,7 @@ const swatches = [
 
 export default function StyleguidePage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8">
+    <div className="flex flex-col gap-10">
       <Logo size="xl" />
       <PageTitle kicker="Design System" title="PharmaPong Styleguide" />
 
@@ -166,6 +166,6 @@ export default function StyleguidePage() {
       <EmptyState icon={<Beaker />} title="Noch keine Spiele">
         Sobald die Gruppen ausgelost sind, erscheinen hier die Partien.
       </EmptyState>
-    </main>
+    </div>
   );
 }
