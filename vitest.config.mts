@@ -41,6 +41,10 @@ export default defineConfig({
       provider: "v8",
       include: ["src/server/domain/**/*.ts"],
       exclude: ["**/*.test.ts"],
+      thresholds: {
+        // The PharmaElo engine is the core of Elo Mode (spec §3): keep it near-fully tested.
+        "src/server/domain/elo/**": { statements: 95, branches: 95, functions: 95, lines: 95 },
+      },
     },
   },
 });

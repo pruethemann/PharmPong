@@ -1,6 +1,7 @@
 # PharmaPong 2.0 — Social Elo Mode: Implementation Plan
 
-> **Status (living document):** Step 1 done · Step 2 (rating engine, tests, simulation) in progress.
+> **Status (living document):** Steps 1–2 done (rating engine, tests, simulation report) · ⏸ waiting for the
+> review checkpoint before Step 3 (database).
 > Verbatim spec: [`claudecode-instructions/elo-spec.md`](../../claudecode-instructions/elo-spec.md).
 > Rating math: [rating-system.md](rating-system.md) · Validation: [rating-validation.md](rating-validation.md).
 

@@ -26,7 +26,8 @@
     "simulate": "tsx scripts/simulate-event.ts",
     "export": "tsx scripts/export-tournament.ts",
     "postinstall": "prisma generate",
-    "scenario": "tsx scripts/dev-scenario.ts"
+    "scenario": "tsx scripts/dev-scenario.ts",
+    "elo:validate": "tsx scripts/elo-validation.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",

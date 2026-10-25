@@ -38,6 +38,15 @@ export function computeTimer(t: TimerInput, nowMs: number): TimerState {
   };
 }
 
+/** Count-up stopwatch (Elo Mode): mm:ss, from one hour h:mm:ss. Rounds down; never negative. */
+export function formatElapsed(elapsedMs: number): string {
+  const totalSec = Math.max(0, Math.floor(elapsedMs / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+  const ss = String(totalSec % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 /** mm:ss; negative values render as "+mm:ss" (overtime). */
 export function formatClock(remainingMs: number): string {
   const over = remainingMs < 0;

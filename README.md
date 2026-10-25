@@ -69,11 +69,12 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 
 ## Tools
 
-| Command          | What                                                |
-| ---------------- | --------------------------------------------------- |
-| `pnpm seed:demo` | Demo users and teams                                |
-| `pnpm simulate`  | Plays a complete 19-match tournament on the dev DB  |
-| `pnpm export`    | JSON/CSV export of standings and results to `data/` |
+| Command             | What                                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm seed:demo`    | Demo users and teams                                                                         |
+| `pnpm simulate`     | Plays a complete 19-match tournament on the dev DB                                           |
+| `pnpm export`       | JSON/CSV export of standings and results to `data/`                                          |
+| `pnpm elo:validate` | Elo Mode: Monte Carlo validation of the rating engine → `docs/elo-mode/rating-validation.md` |
 
 ## Deployment
 
