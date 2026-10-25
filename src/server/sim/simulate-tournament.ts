@@ -14,8 +14,8 @@
 import { db, type Db } from "@/server/db";
 import type { Actor } from "@/server/auth/sessions";
 import { randomToken } from "@/server/auth/tokens";
-import type { Rng } from "@/server/domain/draw";
 import { isDomainError, fail } from "@/server/domain/errors";
+import { seededRng } from "@/server/domain/rng";
 import { GROUP_NAMES, type GroupName } from "@/server/domain/types";
 import { createAdminIfMissing, ensureTournament } from "@/server/services/bootstrap";
 import { correctResult } from "@/server/services/corrections";
@@ -76,18 +76,8 @@ export type SimulationReport = {
 
 // ─── Deterministic RNG ─────────────────────────────────────────────────────
 
-/** mulberry32: small seeded PRNG, adapted to the draw's Rng contract. */
-export function seededRng(seed: number): Rng {
-  let a = seed >>> 0;
-  return (maxExclusive) => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    return Math.floor(r * maxExclusive);
-  };
-}
+// seededRng lives in the pure domain (shared with the Elo simulation); re-exported for existing callers.
+export { seededRng };
 
 // ─── Result plan ───────────────────────────────────────────────────────────
 
