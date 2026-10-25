@@ -75,6 +75,12 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 | `pnpm simulate`  | Plays a complete 19-match tournament on the dev DB  |
 | `pnpm export`    | JSON/CSV export of standings and results to `data/` |
 
+## Deployment
+
+**Live:** https://web-production-13b1f.up.railway.app (Railway project _PharmaPong_: `web` + Postgres + bucket `pharmapong-logos`).
+Procedure, variables, backups and runbook: [docs/deployment.md](docs/deployment.md).
+Before the event, set `ADMIN_INITIAL_PASSWORD` in Railway (web → Variables) and redeploy so the admin `ADMIN_EMAIL` is created.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)

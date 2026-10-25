@@ -1,9 +1,15 @@
 # Deployment (Railway)
 
-> **Status:** deployment files are ready. **No deployment has been performed yet**: the Railway
-> account's trial has expired ("Your trial has expired. Please select a plan to continue using Railway.").
-> Select a plan at https://railway.com/account/billing, then follow the steps below. Every step can be
-> done from Claude Code with the Railway MCP and CLI.
+> **Status (2026-10-25): deployed.** Project **PharmaPong** (workspace "Peter Rüthemann's Projects", account
+> peter.ruethemann@stud.unibas.ch), environment `production`, service `web` → **https://web-production-13b1f.up.railway.app**.
+> Postgres and bucket `pharmapong-logos` (ams) provisioned; migrations applied; health, routes and bucket round trip verified.
+> **Open:** `ADMIN_INITIAL_PASSWORD` is not set yet. Set it in the dashboard (web → Variables), then redeploy so
+> `seed:admin` creates the admin `ADMIN_EMAIL`.
+>
+> **Note:** a `railway up` upload did **not** pick up `railway.json` (deployment meta `configFile: null`), and
+> `railway environment edit --service-config` reported "No changes". The build/start/pre-deploy/healthcheck settings were
+> therefore set on the service instance via the GraphQL API (`serviceInstanceUpdate`, see below). `railway.json` is
+> kept as documentation; Railway deprecates config-as-code files on 2026-12-01 (`railway config migrate` → `.railway/railway.ts`).
 
 ## Topology
 
@@ -65,6 +71,17 @@ railway deployment list --service web --json   # wait for SUCCESS
 
 `S3_FORCE_PATH_STYLE`: `railway bucket credentials --bucket pharmapong-logos --json` reports `urlStyle`.
 Use `true` if it says `path`.
+
+### Service settings applied via API
+
+```bash
+railway api 'mutation u($s: String!, $e: String!, $i: ServiceInstanceUpdateInput!) { serviceInstanceUpdate(serviceId: $s, environmentId: $e, input: $i) }' \
+  --variables '{"s":"<web service id>","e":"<production env id>","i":{"buildCommand":"pnpm build","startCommand":"pnpm start",
+  "preDeployCommand":["pnpm prisma migrate deploy && pnpm seed:admin"],"healthcheckPath":"/api/health","healthcheckTimeout":120,
+  "restartPolicyType":"ON_FAILURE","restartPolicyMaxRetries":5}}'
+```
+
+Verify with `railway environment config --json` (look at `services.<id>.deploy`).
 
 ## Smoke test after deploy
 
