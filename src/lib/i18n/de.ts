@@ -102,5 +102,10 @@ export const errorMessage: Record<ErrorCode, string> = {
   IDEMPOTENCY_MISMATCH: "Diese Anfrage wurde bereits mit anderen Daten gesendet.",
   CONFIRMATION_REQUIRED: "Bitte bestätige die Aktion mit dem verlangten Text.",
   UPLOAD_INVALID: "Bitte lade ein PNG-, JPEG- oder WebP-Bild bis 1 MB hoch.",
+  WRONG_MODE: "Das geht im aktuellen Spielmodus nicht.",
+  PLAYER_BUSY: "Jemand aus der Aufstellung spielt gerade ein anderes Match.",
+  SESSION_NOT_OPEN: "Die Elo-Runde nimmt gerade keine neuen Matches an.",
+  MODE_SWITCH_BLOCKED: "Der Spielmodus kann erst gewechselt werden, wenn alle offenen Matches erledigt sind.",
+  ROSTER_CHANGED: "Die Aufstellung wurde inzwischen geändert. Bitte prüfe sie und bestätige erneut.",
   INTERNAL: "Unerwarteter Fehler. Bitte versuche es erneut.",
 };

@@ -80,10 +80,11 @@ Values below refer to the generated tables (500 seeds per scenario).
     (moderate), but would break spec example B (+12 / −3).
   - Requiring 5 rated games for the title helps only slightly in the apéro (30% solo champions vs. 18%
     eligible).
-- **Options for the organizers** (decision pending):
-  - (a) keep the specified rules and say openly on the rules page that solo is "high risk, high reward";
-  - (b) raise the champion minimum (an admin setting, no code change);
-  - (c) add a "solo factor" house rule, which deviates from the spec.
+- **Decision (2026-10-26, product owner):** keep the specified rules (option a). The Elo rules page states
+  openly that solo play is "high risk, high reward", and the admin sees the number of eligible players
+  before closing a session. The alternatives remain documented: raising the champion minimum is an admin
+  setting; a "solo factor" house rule (halving transfers of matches with a one-player side) was rejected
+  because it would deviate from spec example B.
 
 ### ⚠️ One evening is noisy: the title rewards tonight's results more than skill
 

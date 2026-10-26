@@ -15,6 +15,18 @@ const REQUIRED_INDEXES = [
   "Match_tournamentId_code_key",
   "Match_tournamentId_orderIndex_key",
   "Match_tournamentId_status_idx",
+  // Elo Mode
+  "elo_session_single_open",
+  "elo_table_one_live_match",
+  "elo_run_single_active",
+  "EloActivePlayer_pkey",
+  "EloMatch_sessionId_confirmedSequence_key",
+  "EloMatchParticipant_matchId_userId_key",
+  "EloMatchParticipant_matchId_side_position_key",
+  "EloPlayerRating_sessionId_userId_key",
+  "EloRatingRun_sessionId_revision_key",
+  "EloRatingChange_runId_matchId_userId_key",
+  "EloMatchResultRevision_matchId_revision_key",
 ];
 
 const REQUIRED_CHECKS = [
@@ -30,6 +42,24 @@ const REQUIRED_CHECKS = [
   "match_paused_chk",
   "match_version_chk",
   "group_assignment_position_chk",
+  // Elo Mode
+  "elo_session_settings_chk",
+  "elo_run_params_chk",
+  "elo_participant_position_chk",
+  "elo_participant_rating_chk",
+  "elo_match_cups_chk",
+  "elo_match_consent_chk",
+  "elo_match_started_chk",
+  "elo_match_result_chk",
+  "elo_match_completed_chk",
+  "elo_match_pending_chk",
+  "elo_match_disputed_chk",
+  "elo_match_clock_chk",
+  "elo_match_rating_chk",
+  "elo_player_rating_chk",
+  "elo_rating_change_chk",
+  "elo_revision_roster_chk",
+  "elo_revision_result_chk",
 ];
 
 describe("schema invariants", () => {

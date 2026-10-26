@@ -61,6 +61,50 @@ enum Slot {
   AWAY
 }
 
+// Active game mode of an event (stored on the tournament row, which is the event).
+enum GameMode {
+  COMPETITIVE
+  ELO
+}
+
+enum EloSessionStatus {
+  OPEN // matches can be created
+  PAUSED // no new matches; running ones can finish
+  CLOSED // final standings and champion(s) fixed
+}
+
+enum EloSide {
+  A
+  B
+}
+
+enum EloResultPolicy {
+  DUAL_TEAM_CONFIRMATION
+  REFEREE_ONLY
+}
+
+enum EloEndType {
+  REGULAR
+  CONCEDED
+}
+
+enum EloConsentMethod {
+  CREATOR
+  PARTICIPANT
+  STAFF
+}
+
+// READY (both consents valid) and PAUSED (pausedAt set) are derived states of DRAFT / IN_PROGRESS.
+enum EloMatchStatus {
+  DRAFT
+  IN_PROGRESS
+  AWAITING_CONFIRMATION
+  DISPUTED
+  COMPLETED
+  CANCELLED
+  VOIDED
+}
+
 // ─── Users & auth ──────────────────────────────────────────────────────────
 
 model User {
@@ -74,10 +118,12 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  sessions       Session[]
-  memberships    TeamMember[]
-  passwordResets PasswordReset[] @relation("ResetTarget")
-  refereeMatches Match[]         @relation("MatchReferee")
+  sessions          Session[]
+  memberships       TeamMember[]
+  passwordResets    PasswordReset[]       @relation("ResetTarget")
+  refereeMatches    Match[]               @relation("MatchReferee")
+  eloParticipations EloMatchParticipant[]
+  eloRatings        EloPlayerRating[]
 }
 
 model Session {
@@ -128,6 +174,8 @@ model Tournament {
   drawGeneratedAt      DateTime?
   rosterLockedAt       DateTime?
   championTeamId       String?
+  gameMode             GameMode         @default(COMPETITIVE)
+  gameModeChangedAt    DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
@@ -139,6 +187,7 @@ model Tournament {
   matchEvents    MatchEvent[]
   auditLogs      AuditLog[]
   activeTeamLock ActiveTeamMatch[]
+  eloSessions    EloSession[]
 }
 
 model Team {
@@ -232,7 +281,8 @@ model GameTable {
   name         String
   isDisabled   Boolean    @default(false)
 
-  matches Match[]
+  matches    Match[]
+  eloMatches EloMatch[]
 
   @@unique([tournamentId, number])
 }
@@ -324,6 +374,240 @@ model MatchEvent {
   createdAt    DateTime   @default(now())
 
   @@index([matchId, createdAt])
+}
+
+// ─── Elo Mode (social apéro) ───────────────────────────────────────────────
+// Session-scoped individual ratings for spontaneous matches between temporary teams of 1–4.
+// Partial unique indexes and CHECK constraints: prisma/migrations/*_elo_constraints.
+// Rating maths: src/server/domain/elo (docs/elo-mode/rating-system.md).
+
+model EloSession {
+  id                  String           @id @default(cuid())
+  tournamentId        String
+  tournament          Tournament       @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name                String
+  status              EloSessionStatus @default(OPEN)
+  // Settings that never change existing ratings. Rating parameters live on EloRatingRun.
+  minTeamSize         Int              @default(1)
+  maxTeamSize         Int              @default(4)
+  minGamesForChampion Int              @default(3)
+  softReminderMinutes Int?             @default(20) // null = no reminder
+  resultPolicy        EloResultPolicy  @default(DUAL_TEAM_CONFIRMATION)
+  nextSequence        Int              @default(1) // next confirmation sequence number
+  configVersion       Int              @default(0) // optimistic concurrency for settings/status
+  championUserIds     String[]         @default([]) // fixed when the session is closed
+  createdById         String?
+  closedAt            DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  runs          EloRatingRun[]
+  matches       EloMatch[]
+  ratings       EloPlayerRating[]
+  activePlayers EloActivePlayer[]
+
+  @@index([tournamentId, createdAt])
+}
+
+// A calculation run: the rating parameters and every rating change computed with them. A
+// correction or parameter change replays the session into a new run; old runs stay as history.
+model EloRatingRun {
+  id                String     @id @default(cuid())
+  sessionId         String
+  session           EloSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  revision          Int // 1, 2, …; exactly one run per session has supersededAt = null
+  reason            String // INITIAL, CONFIG_CHANGE, CORRECTION, VOID, ROSTER_CORRECTION, DISPUTE_RESOLUTION, MANUAL
+  triggeredById     String?
+  note              String?
+  algorithmVersion  String
+  initialRating     Float
+  kFactor           Float
+  ratingScale       Float
+  repeatMultipliers Float[]
+  runtime           String // JavaScript runtime that computed the run (process.version)
+  digestAtCreation  String? // projection digest right after the replay
+  supersededAt      DateTime?
+  createdAt         DateTime   @default(now())
+
+  changes EloRatingChange[]
+
+  @@unique([sessionId, revision])
+}
+
+model EloMatch {
+  id           String          @id @default(cuid())
+  sessionId    String
+  session      EloSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tableId      String
+  table        GameTable       @relation(fields: [tableId], references: [id])
+  status       EloMatchStatus  @default(DRAFT)
+  rated        Boolean         @default(true) // false = friendly
+  resultPolicy EloResultPolicy // copied from the session at creation
+  createdById  String
+
+  // Consent: a side consented to exactly the roster whose hash it stored.
+  rosterHash     String
+  consentAHash   String?
+  consentAById   String?
+  consentAAt     DateTime?
+  consentAMethod EloConsentMethod?
+  consentBHash   String?
+  consentBById   String?
+  consentBAt     DateTime?
+  consentBMethod EloConsentMethod?
+  expiresAt      DateTime? // drafts only: cancelled lazily after this
+
+  // Stopwatch (server timestamps)
+  startedAt        DateTime?
+  pausedAt         DateTime?
+  pausedDurationMs Int       @default(0)
+  endedAt          DateTime?
+
+  // Current result. Full history: EloMatchResultRevision.
+  winnerSide     EloSide?
+  endType        EloEndType?
+  cupsRemainingA Int?
+  cupsRemainingB Int?
+  submittedById  String?
+  submittedSide  EloSide?
+  submittedAt    DateTime?
+  confirmedById  String?
+  confirmedAt    DateTime?
+  disputedById   String?
+  disputedAt     DateTime?
+  disputeNote    String?
+  resultVersion  Int         @default(0)
+
+  // Rating bookkeeping (set at confirmation and by every replay)
+  confirmedSequence Int?
+  pairKey           String?
+  ratingMultiplier  Float?
+  expectedScoreA    Float?
+
+  cancelledById String?
+  cancelReason  String?
+  version       Int      @default(0) // optimistic concurrency
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participants  EloMatchParticipant[]
+  events        EloMatchEvent[]
+  revisions     EloMatchResultRevision[]
+  ratingChanges EloRatingChange[]
+
+  @@unique([sessionId, confirmedSequence])
+  @@index([sessionId, status])
+  @@index([tableId])
+}
+
+model EloMatchParticipant {
+  id            String   @id @default(cuid())
+  matchId       String
+  match         EloMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  side          EloSide
+  position      Int // 1..4 within the side
+  ratingAtStart Float? // informational snapshot at start; never an input of the calculation
+  createdAt     DateTime @default(now())
+
+  @@unique([matchId, userId])
+  @@unique([matchId, side, position])
+  @@index([userId])
+}
+
+// One row per player while they are in a DRAFT or IN_PROGRESS Elo match. The primary key
+// guarantees a player is never in two live matches at once (mirrors ActiveTeamMatch).
+model EloActivePlayer {
+  userId    String     @id
+  matchId   String
+  sessionId String
+  session   EloSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@index([matchId])
+}
+
+// Current rating projection of the session's active run (rebuilt by every replay).
+model EloPlayerRating {
+  id           String     @id @default(cuid())
+  sessionId    String
+  session      EloSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  rating       Float
+  gamesPlayed  Int        @default(0) // effective-rated matches only
+  wins         Int        @default(0)
+  losses       Int        @default(0)
+  lowestRating Float
+  peakRating   Float
+  lastSequence Int?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([sessionId, userId])
+}
+
+model EloRatingChange {
+  id               String       @id @default(cuid())
+  runId            String
+  run              EloRatingRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  runRevision      Int
+  matchId          String
+  match            EloMatch     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId           String
+  side             EloSide
+  sequence         Int
+  ratingBefore     Float
+  delta            Float
+  ratingAfter      Float
+  expectedScore    Float // win probability of the player's side
+  teamSize         Int
+  opponentTeamSize Int
+  multiplier       Float
+  algorithmVersion String
+  createdAt        DateTime     @default(now())
+
+  @@unique([runId, matchId, userId])
+  @@index([runId, userId])
+  @@index([matchId])
+}
+
+// Immutable history of every result-defining step of a match (never updated).
+model EloMatchResultRevision {
+  id             String         @id @default(cuid())
+  matchId        String
+  match          EloMatch       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  revision       Int // equals EloMatch.resultVersion after the step
+  kind           String // SUBMITTED, AMENDED, CONFIRMED, DISPUTED, STAFF_FINAL, RESOLVED, CORRECTED, VOIDED, RATED_CHANGED
+  status         EloMatchStatus // status after the step
+  winnerSide     EloSide?
+  rated          Boolean
+  endType        EloEndType?
+  cupsRemainingA Int?
+  cupsRemainingB Int?
+  sideA          String[]
+  sideB          String[]
+  actorId        String?
+  reason         String?
+  previous       Json? // the replaced values (corrections)
+  createdAt      DateTime       @default(now())
+
+  @@unique([matchId, revision])
+}
+
+model EloMatchEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  matchId   String
+  match     EloMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  type      String // CREATED, ROSTER_CHANGED, CONSENTED, LEFT, STARTED, PAUSED, RESUMED, RESULT_SUBMITTED, …, CANCELLED, EXPIRED
+  actorId   String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([matchId, createdAt])
+  @@index([sessionId, createdAt])
 }
 
 // ─── Infrastructure ────────────────────────────────────────────────────────

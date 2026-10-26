@@ -1,6 +1,6 @@
 import { db, type Db, type Tx } from "@/server/db";
 import { DomainError, fail } from "@/server/domain/errors";
-import type { TournamentStatus } from "@/generated/prisma/enums";
+import type { GameMode, TournamentStatus } from "@/generated/prisma/enums";
 import { isRetryable, toDomainError } from "./pg-errors";
 
 export type LockedTournament = {
@@ -9,6 +9,8 @@ export type LockedTournament = {
   isPaused: boolean;
   revision: number;
   matchDurationSec: number;
+  /** Read under the row lock: a mode switch cannot interleave with this transaction. */
+  gameMode: GameMode;
 };
 
 export type TxContext = {
@@ -44,7 +46,7 @@ export async function withTournamentTx<T>(
       return await client.$transaction(
         async (tx) => {
           const rows = await tx.$queryRaw<(LockedTournament & { now: Date })[]>`
-            SELECT id, status, "isPaused", revision, "matchDurationSec", now() AS now
+            SELECT id, status, "isPaused", revision, "matchDurationSec", "gameMode", now() AS now
             FROM "Tournament" WHERE id = ${tournamentId} FOR UPDATE`;
           const row = rows[0];
           if (!row) fail("NOT_FOUND", "Turnier nicht gefunden.");
@@ -67,6 +69,19 @@ export async function withTournamentTx<T>(
       }
       throw toDomainError(e);
     }
+  }
+}
+
+/** Fails with WRONG_MODE unless the locked tournament is in `mode`. */
+export function assertGameMode(ctx: TxContext, mode: GameMode): void {
+  if (ctx.tournament.gameMode !== mode) {
+    fail(
+      "WRONG_MODE",
+      mode === "ELO"
+        ? "Das geht nur im Elo-Modus. Die Turnierleitung hat den Turniermodus aktiv."
+        : "Das geht nur im Turniermodus. Gerade läuft der Elo-Modus.",
+      { mode: ctx.tournament.gameMode },
+    );
   }
 }
 

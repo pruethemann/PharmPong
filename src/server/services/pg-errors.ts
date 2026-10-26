@@ -10,6 +10,10 @@ const CONSTRAINT_CODES: Record<string, ErrorCode> = {
   Team_tournamentId_nameNormalized_key: "NAME_TAKEN",
   User_email_key: "EMAIL_TAKEN",
   group_tiebreak_active: "STALE_VERSION",
+  // Elo Mode (prisma/migrations/*_elo_constraints)
+  elo_table_one_live_match: "TABLE_BUSY",
+  EloActivePlayer_pkey: "PLAYER_BUSY",
+  elo_session_single_open: "INVALID_STATE",
 };
 
 function collectStrings(e: unknown, depth = 0): string {
