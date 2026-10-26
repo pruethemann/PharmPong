@@ -5,6 +5,9 @@ import { EmptyState } from "@/components/pp/section";
 import { buttonVariants } from "@/components/ui/button";
 import { Dashboard } from "@/components/live/dashboard";
 import { loadLiveInitial, viewerOf } from "@/components/live/load-live";
+import { EloHome } from "@/components/elo/elo-home";
+import { loadEloInitial } from "@/components/elo/load-elo";
+import { getActiveGameMode } from "@/server/services/current-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +25,21 @@ function ForbiddenNotice() {
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ forbidden?: string }> }) {
   const forbidden = (await searchParams).forbidden === "1";
+  if ((await getActiveGameMode()) === "ELO") {
+    const elo = await loadEloInitial();
+    if (elo.mode !== "none") {
+      return (
+        <>
+          {forbidden && <ForbiddenNotice />}
+          <EloHome
+            mode={elo.mode}
+            initial={elo.snapshot}
+            viewer={elo.mode === "authed" ? "member" : elo.loggedIn ? "mustChangePassword" : "guest"}
+          />
+        </>
+      );
+    }
+  }
   const live = await loadLiveInitial();
   if (live.mode === "none") {
     return (

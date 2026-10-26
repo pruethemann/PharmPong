@@ -2,13 +2,41 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Gavel, Home, Settings2, Trophy, Users, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  Gavel,
+  Home,
+  Medal,
+  Settings2,
+  Swords,
+  Trophy,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import type { RoleKey } from "@/lib/i18n/de";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: LucideIcon };
 
-export function navItems(role: RoleKey | null): Item[] {
+export type GameModeKey = "COMPETITIVE" | "ELO";
+
+/** Elo Mode: Start, Spielen, Rangliste, Profil and one role-specific item (max. 5). */
+function eloNavItems(role: RoleKey | null): Item[] {
+  const items: Item[] = [
+    { href: "/", label: "Start", icon: Home },
+    { href: "/elo/play", label: "Spielen", icon: Swords },
+    { href: "/elo/rankings", label: "Rangliste", icon: Medal },
+    { href: "/elo/players/me", label: "Profil", icon: UserRound },
+  ];
+  if (role === "ADMIN") items.push({ href: "/admin", label: "Admin", icon: Settings2 });
+  else if (role === "REFEREE") items.push({ href: "/elo/referee", label: "Schiri", icon: Gavel });
+  else items.push({ href: "/rules", label: "Regeln", icon: BookOpen });
+  return items;
+}
+
+export function navItems(role: RoleKey | null, mode: GameModeKey = "COMPETITIVE"): Item[] {
+  if (mode === "ELO") return eloNavItems(role);
   const items: Item[] = [
     { href: "/", label: "Start", icon: Home },
     { href: "/tournament", label: "Turnier", icon: Trophy },
@@ -24,9 +52,9 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function BottomNav({ role }: { role: RoleKey | null }) {
+export function BottomNav({ role, mode }: { role: RoleKey | null; mode?: GameModeKey }) {
   const pathname = usePathname();
-  const items = navItems(role);
+  const items = navItems(role, mode);
   return (
     <nav
       aria-label="Hauptnavigation"
@@ -59,11 +87,11 @@ export function BottomNav({ role }: { role: RoleKey | null }) {
   );
 }
 
-export function TopNav({ role }: { role: RoleKey | null }) {
+export function TopNav({ role, mode }: { role: RoleKey | null; mode?: GameModeKey }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
-      {navItems(role).map(({ href, label, icon: Icon }) => {
+      {navItems(role, mode).map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link

@@ -195,7 +195,8 @@ export function withCups(d: ResultDraft, side: Side, value: number): ResultDraft
 
 // ─── Idempotency keys ──────────────────────────────────────────────────────
 
-export type IdempotencyStep = "propose" | "confirm";
+export type IdempotencyStep =
+  "propose" | "confirm" | "elo-submit" | "elo-confirm" | "elo-dispute" | "elo-final";
 
 /** Minimal Storage interface (sessionStorage in the browser, a Map in tests). */
 export type KeyStore = Pick<Storage, "getItem" | "setItem" | "removeItem">;

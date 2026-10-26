@@ -4,6 +4,7 @@
 //   pnpm tsx scripts/dev-scenario.ts groups         group stage running: results, 2 live matches, 1 awaiting confirmation
 //   pnpm tsx scripts/dev-scenario.ts knockout       knockout running: QF1/QF2 done, QF3/QF4 live
 //   pnpm tsx scripts/dev-scenario.ts completed      full 19-match simulation incl. tie, shootout, correction
+//   pnpm tsx scripts/dev-scenario.ts elo            after the final: Elo Mode with ~24 matches, 2 live, 1 pending, 1 dispute
 //
 // Always starts from a fresh tournament (the open one is cancelled, history is kept).
 // Logins (password "pharmapong-demo"): dev-admin@pharmapong.test (ADMIN),
@@ -26,11 +27,12 @@ import {
   assertDemoSeedAllowed,
 } from "../src/server/sim/demo-data";
 import { seededRng, simulateTournament } from "../src/server/sim/simulate-tournament";
+import { seedEloEvent } from "../src/server/sim/elo-scenario";
 import { suggestAssignments } from "../src/server/domain/scheduler";
 
 const PASSWORD = "pharmapong-demo";
 const DEV_ADMIN_EMAIL = "dev-admin@pharmapong.test";
-type Mode = "registration" | "groups" | "knockout" | "completed";
+type Mode = "registration" | "groups" | "knockout" | "completed" | "elo";
 
 async function upsertUser(email: string, displayName: string, role: Actor["role"], passwordHash: string) {
   const u = await db.user.upsert({
@@ -219,8 +221,8 @@ async function playGroupMatches(admin: Actor, referee: Actor, tournamentId: stri
 async function main() {
   assertDemoSeedAllowed();
   const mode = process.argv[2] as Mode;
-  if (!["registration", "groups", "knockout", "completed"].includes(mode)) {
-    throw new Error("Usage: tsx scripts/dev-scenario.ts registration|groups|knockout|completed");
+  if (!["registration", "groups", "knockout", "completed", "elo"].includes(mode)) {
+    throw new Error("Usage: tsx scripts/dev-scenario.ts registration|groups|knockout|completed|elo");
   }
   const hash = await hashPassword(PASSWORD);
   const admin = await upsertUser(DEV_ADMIN_EMAIL, "Dev-Admin", "ADMIN", hash);
@@ -247,6 +249,18 @@ async function main() {
     const report = await simulateTournament({ seed: 7, tournamentId, demoPassword: PASSWORD });
     await db.tournament.update({ where: { id: tournamentId }, data: { publicDisplayEnabled: true } });
     console.log(`[dev-scenario] champion: ${report.championName}`);
+    if (mode === "elo") {
+      const players: Actor[] = [];
+      for (let i = 1; i <= 24; i++) {
+        const u = await db.user.findUniqueOrThrow({ where: { email: demoEmail(i) } });
+        players.push({ ...u, mustChangePassword: false } as Actor);
+      }
+      const elo = await seedEloEvent({ tournamentId, admin, players });
+      console.log(
+        `[dev-scenario] elo: session ${elo.sessionId}, ${elo.completed} confirmed matches, ` +
+          `running ${elo.live.running}, draft ${elo.live.draft}, pending ${elo.pending}, dispute ${elo.disputed}`,
+      );
+    }
   }
   const t = await db.tournament.findFirstOrThrow({ orderBy: { createdAt: "desc" } });
   console.log(`[dev-scenario] ${mode}: tournament ${t.id} status=${t.status} revision=${t.revision}`);

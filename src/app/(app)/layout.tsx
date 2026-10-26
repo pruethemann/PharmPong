@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { BottomNav, TopNav } from "@/components/pp/app-nav";
 import { Logo } from "@/components/pp/logo";
+import { ModeWatch } from "@/components/pp/mode-watch";
 import { UserMenu } from "@/components/pp/user-menu";
 import { getCurrentUser } from "@/server/auth/current";
+import { getActiveGameMode } from "@/server/services/current-mode";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const [user, mode] = await Promise.all([getCurrentUser(), getActiveGameMode()]);
   const role = user?.role ?? null;
   return (
     <>
@@ -20,7 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/" className="rounded-lg" aria-label="PharmaPong Startseite">
             <Logo size="sm" />
           </Link>
-          <TopNav role={role} />
+          <TopNav role={role} mode={mode} />
           <UserMenu
             user={user ? { displayName: user.displayName, email: user.email, role: user.role } : null}
           />
@@ -32,7 +34,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       >
         {children}
       </main>
-      <BottomNav role={role} />
+      <BottomNav role={role} mode={mode} />
+      <ModeWatch mode={mode} />
     </>
   );
 }
