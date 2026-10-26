@@ -6,6 +6,7 @@ import type { Actor } from "@/server/auth/sessions";
 import { fail } from "@/server/domain/errors";
 import { ACTIVE_MATCH_STATUSES } from "@/server/domain/types";
 import { writeAudit } from "./audit";
+import { sweepExpiredDrafts } from "./elo-core";
 import { REASON_MAX, REASON_MIN, type ServiceOpts } from "./tournament";
 import { withTournamentTx } from "./tx";
 
@@ -66,6 +67,21 @@ export async function setTableDisabled(
               matchId: active.id,
               code: active.code,
               status: active.status,
+            },
+          );
+        }
+        await sweepExpiredDrafts(tx, ctx);
+        const elo = await tx.eloMatch.findFirst({
+          where: { tableId, status: { in: ["DRAFT", "IN_PROGRESS"] } },
+          select: { id: true, status: true },
+        });
+        if (elo) {
+          fail(
+            "TABLE_BUSY",
+            "An diesem Tisch ist ein Elo-Match reserviert oder läuft. Bitte zuerst beenden oder abbrechen.",
+            {
+              eloMatchId: elo.id,
+              status: elo.status,
             },
           );
         }

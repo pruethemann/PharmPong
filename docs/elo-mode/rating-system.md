@@ -132,11 +132,12 @@ through an audited correction that replays the session.
   average. PharmaPong therefore replays the whole session (a few hundred matches at most, milliseconds).
 - **One code path.** The ratings are a pure fold (`replaySession`) over the COMPLETED matches in sequence
   order, starting from the run's initial rating:
-  - a normal confirmation replays history plus the new match and persists only the new step;
-  - a correction (winner, roster, rated flag, void, dispute resolution, parameter change, manual
-    recalculation) writes an immutable result revision, replays everything into a **new calculation
-    run**, rebuilds the projection and supersedes the old run. Old runs and their change rows remain as
-    audit history.
+  - a normal confirmation replays history plus the new match and persists only the new step. A resolved
+    dispute is confirmed the same way: it receives the next sequence number at resolution, so appending
+    it is exactly what a full replay would compute;
+  - a correction (winner, roster, cups, rated flag, void, parameter change, manual recalculation) writes an
+    immutable result revision, replays everything into a **new calculation run**, rebuilds the projection
+    and supersedes the old run. Old runs and their change rows remain as audit history.
 - **Atomic and serialized.** Everything happens in one database transaction holding the event's row lock, so
   a replay can never interleave with a confirmation.
 - **Reproducible.** Replay starts from the run parameters and never reads stored floats back as inputs;

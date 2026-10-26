@@ -24,6 +24,34 @@ export async function ensureTournament(client: Db = db): Promise<string> {
   return t.id;
 }
 
+/**
+ * Pre-deploy variant of ensureTournament (scripts/seed-admin.ts). While the latest tournament runs
+ * Elo Mode or still has a non-closed Elo session, it stays the current event instead of a fresh
+ * tournament being opened: otherwise a hotfix deploy during the apéro after the competitive final
+ * would hide the running Elo session.
+ */
+export async function ensureTournamentForDeploy(
+  client: Db = db,
+): Promise<{ tournamentId: string; keptEloEvent: boolean }> {
+  const open = await client.tournament.findFirst({
+    where: { status: { notIn: ["COMPLETED", "CANCELLED"] } },
+    select: { id: true },
+  });
+  if (open) return { tournamentId: open.id, keptEloEvent: false };
+  const latest = await client.tournament.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      gameMode: true,
+      eloSessions: { where: { status: { not: "CLOSED" } }, select: { id: true } },
+    },
+  });
+  if (latest && (latest.gameMode === "ELO" || latest.eloSessions.length > 0)) {
+    return { tournamentId: latest.id, keptEloEvent: true };
+  }
+  return { tournamentId: await ensureTournament(client), keptEloEvent: false };
+}
+
 /** Create the initial admin if missing. Never overwrites an existing account's password. */
 export async function ensureAdmin(
   email: string,

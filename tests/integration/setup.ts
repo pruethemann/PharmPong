@@ -9,7 +9,12 @@ export async function truncateAll() {
       SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'`;
     tables = rows.map((r) => `"${r.tablename}"`);
   }
-  if (tables.length) await db.$executeRawUnsafe(`TRUNCATE ${tables.join(", ")} RESTART IDENTITY CASCADE`);
+  if (!tables.length) return;
+  // TRUNCATE has a fixed cost per table, so only the tables a test actually wrote to are emptied
+  // (an empty table has no rows to remove and no advanced sequence to restart).
+  const probe = tables.map((t) => `SELECT '${t}' AS t WHERE EXISTS (SELECT 1 FROM ${t})`).join(" UNION ALL ");
+  const dirty = (await db.$queryRawUnsafe<{ t: string }[]>(probe)).map((r) => r.t);
+  if (dirty.length) await db.$executeRawUnsafe(`TRUNCATE ${dirty.join(", ")} RESTART IDENTITY CASCADE`);
 }
 
 beforeEach(async () => {

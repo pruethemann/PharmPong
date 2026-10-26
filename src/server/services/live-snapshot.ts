@@ -31,7 +31,8 @@ const ANNOUNCED_EVENT_TYPES = ["ASSIGNED", "STARTED", "ADVANCED", "CHAMPION"] as
 
 // ─── Read transaction ──────────────────────────────────────────────────────
 
-async function readSnapshotTx<T>(fn: (tx: Tx) => Promise<T>, client: Db = db): Promise<T> {
+/** Read-only REPEATABLE READ transaction (also used by the Elo snapshots). */
+export async function readSnapshotTx<T>(fn: (tx: Tx) => Promise<T>, client: Db = db): Promise<T> {
   return client.$transaction(
     async (tx) => {
       // Must run before the first query of the transaction (snapshot not yet taken).
@@ -232,6 +233,7 @@ async function buildPublicFromState(
   return {
     revision: t.revision,
     serverNow,
+    gameMode: t.gameMode,
     tournament: {
       id: t.id,
       name: t.name,
@@ -377,15 +379,16 @@ export async function buildAuthedSnapshot(
       me: { userId: user.id, displayName: user.displayName, role: user.role, teamId },
       myNextMatchId: nextMatchForTeam(state.matches, teamId),
     };
+    // Assigning is blocked while the tournament is paused or in Elo Mode.
+    const noAssignments = state.tournament.isPaused || state.tournament.gameMode === "ELO";
     if (user.role === "REFEREE" || user.role === "ADMIN") {
       extras.matchOps = matchOpsOf(state, await loadOpenIssues(tx, tournamentId));
-      // Referees may put exactly these suggestions on their table; blocked while paused.
-      extras.suggestions = state.tournament.isPaused ? [] : suggestAssignments(state.matches, state.tables);
+      // Referees may put exactly these suggestions on their table.
+      extras.suggestions = noAssignments ? [] : suggestAssignments(state.matches, state.tables);
     }
     if (user.role === "ADMIN") {
       extras.admin = {
-        // Assigning is blocked while the tournament is paused.
-        suggestions: state.tournament.isPaused ? [] : suggestAssignments(state.matches, state.tables),
+        suggestions: noAssignments ? [] : suggestAssignments(state.matches, state.tables),
         unresolvedTies: state.standings.flatMap((s) =>
           s.unresolved.map((u) => ({
             group: u.group,

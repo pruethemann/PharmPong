@@ -2,11 +2,15 @@
 // Runs in Railway's preDeployCommand. Never prints secrets.
 import "dotenv/config";
 import { db } from "../src/server/db";
-import { ensureAdmin, ensureTournament } from "../src/server/services/bootstrap";
+import { ensureAdmin, ensureTournamentForDeploy } from "../src/server/services/bootstrap";
 
 async function main() {
-  const tournamentId = await ensureTournament();
-  console.log(`[seed-admin] tournament ready (${tournamentId})`);
+  const { tournamentId, keptEloEvent } = await ensureTournamentForDeploy();
+  console.log(
+    keptEloEvent
+      ? `[seed-admin] keeping the finished tournament ${tournamentId}: its Elo Mode session is still running`
+      : `[seed-admin] tournament ready (${tournamentId})`,
+  );
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_INITIAL_PASSWORD;
   if (!email || !password) {

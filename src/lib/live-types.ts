@@ -85,6 +85,8 @@ export type LiveEvent = {
 export type PublicSnapshot = {
   revision: number;
   serverNow: number;
+  /** Active game mode of the event; clients switch views when it changes. */
+  gameMode: "COMPETITIVE" | "ELO";
   tournament: {
     id: string;
     name: string;

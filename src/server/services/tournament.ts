@@ -15,7 +15,7 @@ import { GROUP_NAMES, type GroupName } from "@/server/domain/types";
 import type { MatchStatus, TournamentStatus } from "@/generated/prisma/enums";
 import { writeAudit, writeMatchEvent } from "./audit";
 import { loadTournamentState, lockMatches } from "./state";
-import { getCurrentTournamentId, withTournamentTx, type TxContext } from "./tx";
+import { assertGameMode, getCurrentTournamentId, withTournamentTx, type TxContext } from "./tx";
 
 export type ServiceOpts = { tournamentId?: string; client?: Db };
 
@@ -722,6 +722,8 @@ export async function pauseTournament(actor: Actor, input: { reason?: string } =
       if (ctx.tournament.status !== "GROUP_STAGE" && ctx.tournament.status !== "KNOCKOUT_STAGE") {
         fail("INVALID_STATE", "Pausieren ist nur während der Gruppen- oder K.-o.-Phase möglich.");
       }
+      // In Elo Mode every match has its own pause; the tournament pause would do nothing.
+      assertGameMode(ctx, "COMPETITIVE");
       if (ctx.tournament.isPaused) fail("INVALID_STATE", "Das Turnier ist bereits pausiert.");
       const running = await tx.match.findMany({
         where: { tournamentId, status: "IN_PROGRESS", pausedAt: null },

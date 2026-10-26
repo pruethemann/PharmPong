@@ -416,7 +416,7 @@ model EloRatingRun {
   sessionId         String
   session           EloSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   revision          Int // 1, 2, …; exactly one run per session has supersededAt = null
-  reason            String // INITIAL, CONFIG_CHANGE, CORRECTION, VOID, ROSTER_CORRECTION, DISPUTE_RESOLUTION, MANUAL
+  reason            String // INITIAL, CONFIG_CHANGE, CORRECTION, ROSTER_CORRECTION, RATED_CHANGED, VOID, MANUAL
   triggeredById     String?
   note              String?
   algorithmVersion  String

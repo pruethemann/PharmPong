@@ -1,8 +1,8 @@
 # PharmaPong 2.0 — Social Elo Mode: Implementation Plan
 
 > **Status (living document):** Steps 1–2 done (rating engine, tests, simulation report; checkpoint passed
-> 2026-10-26: spec formula kept, solo risk explained in the rules) · Step 3 (database) done · Step 4 (backend)
-> in progress.
+> 2026-10-26: spec formula kept, solo risk explained in the rules) · Steps 3–4 (database, backend) done · Step 5
+> (core UI) in progress.
 > Verbatim spec: [`claudecode-instructions/elo-spec.md`](../../claudecode-instructions/elo-spec.md).
 > Rating math: [rating-system.md](rating-system.md) · Validation: [rating-validation.md](rating-validation.md).
 
@@ -180,7 +180,7 @@ The competitive mode must keep working unchanged, and every migration is additiv
 | Model                    | Key fields                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `EloSession`             | tournamentId, name, status, minTeamSize, maxTeamSize, minGamesForChampion, softReminderMinutes?, resultPolicy, nextSequence, configVersion, `championUserIds String[]`, openedAt, closedAt?                                                                                                                                                                                                                                              |
-| `EloRatingRun`           | sessionId, revision (unique together); reason (INITIAL, CONFIG_CHANGE, CORRECTION, VOID, ROSTER_CORRECTION, DISPUTE_RESOLUTION, MANUAL), triggeredById, note, **rating params** (initialRating, kFactor, ratingScale, `repeatMultipliers Float[]`, algorithmVersion), runtime (`process.version`), digestAtCreation, supersededAt?                                                                                                       |
+| `EloRatingRun`           | sessionId, revision (unique together); reason (INITIAL, CONFIG_CHANGE, CORRECTION, ROSTER_CORRECTION, RATED_CHANGED, VOID, MANUAL), triggeredById, note, **rating params** (initialRating, kFactor, ratingScale, `repeatMultipliers Float[]`, algorithmVersion), runtime (`process.version`), digestAtCreation, supersededAt?                                                                                                            |
 | `EloMatch`               | sessionId, tableId → GameTable, status, rated, resultPolicy (copied at creation), createdById; rosterHash, consentA/B{Hash, ById, At, Method}, expiresAt?; startedAt, pausedAt, pausedDurationMs, endedAt; winnerSide, endType, cupsRemainingA/B?, submittedById/Side/At, confirmedById/At, disputedById/At/Note; resultVersion, confirmedSequence?, pairKey?, ratingMultiplier?, expectedScoreA?; cancelledById, cancelReason?; version |
 | `EloMatchParticipant`    | matchId, userId → User, side, position 1–4, ratingAtStart? (informational). Unique on (matchId, userId) and (matchId, side, position).                                                                                                                                                                                                                                                                                                   |
 | `EloActivePlayer`        | `userId` primary key, matchId, sessionId. Mirrors `ActiveTeamMatch`: one live match per user.                                                                                                                                                                                                                                                                                                                                            |
@@ -271,7 +271,7 @@ The competitive mode must keep working unchanged, and every migration is additiv
   2. Run `replaySession` in memory, using the active run's parameters.
   3. Persist only the new step: change rows appended to the active run, the participants' projections, and
      `ratingMultiplier`, `expectedScoreA` and `pairKey` on the match.
-- **Full replay** (correction of winner, roster, cups or rated flag; void; dispute resolution; config change;
+- **Full replay** (correction of winner, roster, cups or rated flag; void; config change;
   manual "Neu berechnen"), all inside one locked transaction, so it is atomic and serialized against
   confirmations:
   1. Write the immutable result revision.

@@ -17,7 +17,7 @@ import type { Match, Prisma } from "@/generated/prisma/client";
 import type { MatchStatus } from "@/generated/prisma/enums";
 import { writeAudit, writeMatchEvent } from "./audit";
 import { loadTournamentState } from "./state";
-import { withTournamentTx, type TxContext, type TxOptions } from "./tx";
+import { assertGameMode, withTournamentTx, type TxContext, type TxOptions } from "./tx";
 
 export type MatchMutationResult = { matchId: string; version: number; status: MatchStatus };
 
@@ -200,6 +200,7 @@ export async function assignMatch(
     input.matchId,
     async (tx, ctx) => {
       assertPlayPhase(ctx);
+      assertGameMode(ctx, "COMPETITIVE");
       assertNotPaused(ctx);
       const match = await getLockedMatch(tx, ctx, input.matchId);
       assertVersion(match, input.expectedVersion);
@@ -216,7 +217,11 @@ export async function assignMatch(
           m.tableId === table.id &&
           ["ASSIGNED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(m.status),
       );
-      if (occupied) fail("TABLE_BUSY");
+      // Defense in depth: a live Elo match cannot exist in competitive mode (the mode switch refuses it).
+      const eloLive = await tx.eloMatch.count({
+        where: { tableId: table.id, status: { in: ["DRAFT", "IN_PROGRESS"] } },
+      });
+      if (occupied || eloLive > 0) fail("TABLE_BUSY");
       const view = state.matches.find((m) => m.id === match.id)!;
       const elig = eligibility(state.matches, view);
       if (!elig.eligible) {
@@ -338,6 +343,7 @@ export async function startMatch(
     input.matchId,
     async (tx, ctx) => {
       assertPlayPhase(ctx);
+      assertGameMode(ctx, "COMPETITIVE");
       assertNotPaused(ctx);
       const match = await getLockedMatch(tx, ctx, input.matchId);
       assertVersion(match, input.expectedVersion);
