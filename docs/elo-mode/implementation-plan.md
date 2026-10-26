@@ -4,7 +4,8 @@
 > 2026-10-26: spec formula kept, solo risk explained in the rules) · Steps 3–4 (database, backend) done · Step 5
 > (core UI: mode-aware navigation, Elo home, match builder, match page, rankings, player profile and the
 > `pnpm scenario elo` dev data) done · Step 6 (referee board, QR pages, rules, display) done · Step 7
-> (administration) in progress.
+> (administration: mode card, `/admin/elo`, corrections, calculation runs, settings, audit labels) done ·
+> Step 8 (event simulation, E2E, docs, release prep) in progress.
 > Verbatim spec: [`claudecode-instructions/elo-spec.md`](../../claudecode-instructions/elo-spec.md).
 > Rating math: [rating-system.md](rating-system.md) · Validation: [rating-validation.md](rating-validation.md).
 

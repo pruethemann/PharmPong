@@ -69,9 +69,10 @@ export function EloTableCard({
     <Link
       href={`/elo/matches/${match.id}`}
       // No aria-label: the name comes from the visible content (axe label-content-name-mismatch).
+      // A <div>, not <article>, inside: Chrome computes no link name through an article.
       className="group block rounded-2xl focus-visible:outline-offset-4"
     >
-      <article
+      <div
         className={cn(
           "bg-card group-hover:border-primary/60 flex h-full flex-col gap-3 rounded-2xl border p-4 transition-colors",
           status === "IN_PROGRESS" && "border-status-live/70 shadow-[0_0_0_1px_var(--live)]",
@@ -116,7 +117,7 @@ export function EloTableCard({
             aria-hidden="true"
           />
         </span>
-      </article>
+      </div>
     </Link>
   );
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { CalendarClock } from "lucide-react";
 import { AdminOverview } from "@/components/admin/overview/admin-overview";
+import { ModeCard } from "@/components/admin/elo/mode-card";
+import { getModeStatus } from "@/server/services/game-mode";
 import { EmptyState, PageTitle } from "@/components/pp/section";
 import { requirePageUser } from "@/server/auth/current";
 import { buildAuthedSnapshot } from "@/server/services/live-snapshot";
@@ -25,11 +27,12 @@ export default async function AdminOverviewPage() {
       </>
     );
   }
-  const [snapshot, overview, userCounts, teams] = await Promise.all([
+  const [snapshot, overview, userCounts, teams, mode] = await Promise.all([
     buildAuthedSnapshot(user, tournamentId),
     getTournamentOverview(tournamentId),
     getUserCounts(user),
     listTeamsAdmin(user, tournamentId),
+    getModeStatus(user),
   ]);
   const incompleteTeams = teams
     .filter((t) => t.status === "ACTIVE" && !t.complete)
@@ -38,6 +41,7 @@ export default async function AdminOverviewPage() {
   return (
     <>
       <PageTitle kicker="Turnierleitung" title="Übersicht" />
+      <ModeCard gameMode={mode.gameMode} blockers={mode.blockers} />
       <AdminOverview
         initial={snapshot}
         incompleteTeams={incompleteTeams}

@@ -45,6 +45,10 @@ export const DEFAULT_SESSION_SETTINGS: EloSessionSettings = {
   resultPolicy: DEFAULT_ELO_CONFIG.resultConfirmation,
 };
 
+/** Typed confirmations for irreversible admin steps (shared by the services and the admin UI). */
+export const ELO_CLOSE_CONFIRM_TEXT = "ELO-RUNDE BEENDEN";
+export const ELO_RECALC_CONFIRM_TEXT = "ELO NEU BERECHNEN";
+
 /** Unstarted drafts hold their table and players this long after the last roster activity. */
 export const DRAFT_TTL_MINUTES = 10;
 

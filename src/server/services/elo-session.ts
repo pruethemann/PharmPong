@@ -7,6 +7,8 @@ import { fail } from "@/server/domain/errors";
 import {
   DEFAULT_ELO_PARAMS,
   ELO_ALGORITHM_VERSION,
+  ELO_CLOSE_CONFIRM_TEXT,
+  ELO_RECALC_CONFIRM_TEXT,
   paramsDiffer,
   validateEloParams,
   validateSessionSettings,
@@ -22,8 +24,8 @@ import { activeRun, paramsOfRun, rebuildRatings, type RebuildResult } from "./el
 import { assertReason } from "./matches";
 import type { TxContext } from "./tx";
 
-export const CLOSE_CONFIRM_TEXT = "ELO-RUNDE BEENDEN";
-export const RECALC_CONFIRM_TEXT = "ELO NEU BERECHNEN";
+export const CLOSE_CONFIRM_TEXT = ELO_CLOSE_CONFIRM_TEXT;
+export const RECALC_CONFIRM_TEXT = ELO_RECALC_CONFIRM_TEXT;
 export const DEFAULT_SESSION_NAME = "Social Elo";
 
 export type EloBlocker = { matchId: string; status: string; tableNumber: number; draft: boolean };

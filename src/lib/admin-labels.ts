@@ -34,6 +34,28 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "tournament.champion_change": "Turniersieger geändert",
   "tournament.recovery": "Wiederherstellung ausgeführt",
   "tournament.cancel": "Turnier abgebrochen",
+  "tournament.public_display": "Öffentliche Anzeige umgeschaltet",
+  // Game mode and Elo Mode
+  "game.mode": "Spielmodus gewechselt",
+  "elo.session.open": "Elo-Runde eröffnet",
+  "elo.session.pause": "Elo-Runde pausiert",
+  "elo.session.resume": "Elo-Runde fortgesetzt",
+  "elo.session.close": "Elo-Runde beendet",
+  "elo.session.reopen": "Elo-Runde wieder geöffnet",
+  "elo.session.settings": "Elo-Einstellungen geändert",
+  "elo.params": "Elo-Parameter geändert",
+  "elo.recalculate": "Elo neu berechnet",
+  "elo.drafts.cancel": "Elo-Aufstellungen abgebrochen",
+  "elo.match.roster": "Elo-Aufstellung geändert (Schiri)",
+  "elo.match.staff_consent": "Elo-Zustimmung vor Ort erfasst",
+  "elo.match.cancel": "Elo-Match abgebrochen",
+  "elo.match.abandon": "Laufendes Elo-Match abgebrochen",
+  "elo.match.dispute": "Elo-Einspruch erhoben",
+  "elo.match.staff_final": "Elo-Resultat von Schiri festgelegt",
+  "elo.match.resolve": "Elo-Einspruch entschieden",
+  "elo.match.void_pending": "Offenes Elo-Resultat annulliert",
+  "elo.match.correct": "Elo-Match korrigiert",
+  "elo.match.void": "Elo-Match annulliert",
   // Tables
   "table.rename": "Tisch umbenannt",
   "table.disable": "Tisch gesperrt",
@@ -83,6 +105,8 @@ export function auditActionLabel(action: string): string {
 export const AUDIT_ACTION_PREFIXES: readonly { value: string; label: string }[] = [
   { value: "match.", label: "Spiele" },
   { value: "tournament.", label: "Turnier" },
+  { value: "elo.", label: "Elo-Modus" },
+  { value: "game.", label: "Spielmodus" },
   { value: "tiebreak.", label: "Shootouts" },
   { value: "table.", label: "Tische" },
   { value: "admin.team.", label: "Teams (Admin)" },
@@ -99,6 +123,8 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   GameTable: "Tisch",
   GroupTiebreak: "Ranking-Shootout",
   AuthThrottle: "Login-Sperre",
+  EloMatch: "Elo-Match",
+  EloSession: "Elo-Runde",
 };
 
 export function entityTypeLabel(type: string): string {

@@ -73,7 +73,7 @@ async function entityLabels(
   rows: { entityType: string; entityId: string }[],
 ): Promise<Map<string, string>> {
   const ids = (t: string) => [...new Set(rows.filter((r) => r.entityType === t).map((r) => r.entityId))];
-  const [matches, teams, users, tables, tournaments] = await Promise.all([
+  const [matches, teams, users, tables, tournaments, eloMatches, eloSessions] = await Promise.all([
     ids("Match").length
       ? client.match.findMany({ where: { id: { in: ids("Match") } }, select: { id: true, code: true } })
       : [],
@@ -98,6 +98,18 @@ async function entityLabels(
           select: { id: true, name: true },
         })
       : [],
+    ids("EloMatch").length
+      ? client.eloMatch.findMany({
+          where: { id: { in: ids("EloMatch") } },
+          select: { id: true, confirmedSequence: true, table: { select: { number: true } } },
+        })
+      : [],
+    ids("EloSession").length
+      ? client.eloSession.findMany({
+          where: { id: { in: ids("EloSession") } },
+          select: { id: true, name: true },
+        })
+      : [],
   ]);
   const map = new Map<string, string>();
   for (const m of matches) map.set(`Match:${m.id}`, m.code);
@@ -105,6 +117,13 @@ async function entityLabels(
   for (const u of users) map.set(`User:${u.id}`, u.displayName);
   for (const t of tournaments) map.set(`Tournament:${t.id}`, t.name);
   for (const t of tables) map.set(`GameTable:${t.id}`, `Tisch ${t.number} (${t.name})`);
+  for (const m of eloMatches) {
+    map.set(
+      `EloMatch:${m.id}`,
+      `Tisch ${m.table.number}${m.confirmedSequence != null ? ` · Nr. ${m.confirmedSequence}` : ""}`,
+    );
+  }
+  for (const e of eloSessions) map.set(`EloSession:${e.id}`, e.name);
   return map;
 }
 

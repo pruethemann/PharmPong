@@ -351,6 +351,54 @@ export async function getEloRulesInfo(tournamentId: string | null, client: Db = 
 
 // ─── Admin lists ───────────────────────────────────────────────────────────
 
+export type EloSessionAdmin = {
+  id: string;
+  name: string;
+  status: "OPEN" | "PAUSED" | "CLOSED";
+  configVersion: number;
+  createdAt: number;
+  closedAt: number | null;
+  settings: {
+    minTeamSize: number;
+    maxTeamSize: number;
+    minGamesForChampion: number;
+    softReminderMinutes: number | null;
+    resultPolicy: "DUAL_TEAM_CONFIRMATION" | "REFEREE_ONLY";
+  };
+  /** Earlier, closed rounds of the same event. */
+  closedRounds: number;
+};
+
+/** The event's current Elo round with its config version (needed by every admin change). */
+export async function getEloSessionAdmin(
+  actor: Actor,
+  tournamentId: string,
+  client: Db = db,
+): Promise<EloSessionAdmin | null> {
+  assertRole(actor, "ADMIN");
+  const s = await currentEloSession(client, tournamentId);
+  if (!s) return null;
+  const closedRounds = await client.eloSession.count({
+    where: { tournamentId, status: "CLOSED", id: { not: s.id } },
+  });
+  return {
+    id: s.id,
+    name: s.name,
+    status: s.status,
+    configVersion: s.configVersion,
+    createdAt: s.createdAt.getTime(),
+    closedAt: ms(s.closedAt),
+    settings: {
+      minTeamSize: s.minTeamSize,
+      maxTeamSize: s.maxTeamSize,
+      minGamesForChampion: s.minGamesForChampion,
+      softReminderMinutes: s.softReminderMinutes,
+      resultPolicy: s.resultPolicy,
+    },
+    closedRounds,
+  };
+}
+
 export type EloAdminMatchRow = {
   id: string;
   status: EloMatchStatus;

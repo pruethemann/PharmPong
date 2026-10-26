@@ -67,16 +67,8 @@ export function StaffPanel({ m, ops }: { m: EloLiveMatch; ops: EloMatchOps }) {
         <ResultEntry
           sideA={m.sideA}
           sideB={m.sideB}
-          initial={
-            m.report
-              ? {
-                  winnerSide: m.report.winnerSide,
-                  endType: m.report.endType,
-                  cupsRemainingA: m.report.cupsRemainingA,
-                  cupsRemainingB: m.report.cupsRemainingB,
-                }
-              : null
-          }
+          // Decide explicitly: the report is what is being questioned (accepting it is one button above).
+          initial={null}
           title={resolving ? "Wer hat wirklich gewonnen?" : "Wer hat gewonnen?"}
           submitLabel="Resultat festlegen"
           busy={pending != null}

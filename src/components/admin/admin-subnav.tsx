@@ -3,13 +3,23 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ScrollText, Swords, Trophy, UserCog, Users, type LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  ScrollText,
+  Shuffle,
+  Swords,
+  Trophy,
+  UserCog,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Übersicht", icon: LayoutDashboard },
   { href: "/admin/tournament", label: "Turnier", icon: Trophy },
   { href: "/admin/matches", label: "Spiele", icon: Swords },
+  { href: "/admin/elo", label: "Elo", icon: Shuffle },
   { href: "/admin/teams", label: "Teams", icon: Users },
   { href: "/admin/users", label: "Benutzer", icon: UserCog },
   { href: "/admin/audit", label: "Audit", icon: ScrollText },

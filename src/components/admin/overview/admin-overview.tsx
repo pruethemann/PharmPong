@@ -39,11 +39,8 @@ import type { AuthedSnapshot, LiveMatch, LiveTable } from "@/lib/live-types";
 import { useLive, type Connection } from "@/lib/use-live";
 import { cn } from "@/lib/utils";
 import { assignMatchAction, unassignMatchAction } from "@/server/actions/matches";
-import {
-  pauseTournamentAction,
-  resumeTournamentAction,
-  updateSettingsAction,
-} from "@/server/actions/tournament";
+import { setPublicDisplayAction } from "@/server/actions/elo-admin";
+import { pauseTournamentAction, resumeTournamentAction } from "@/server/actions/tournament";
 
 export type OverviewCounts = {
   registeredPlayers: number;
@@ -232,7 +229,8 @@ export function AdminOverview({
         }
         onResume={() => run("resume", () => resumeTournamentAction(), { success: "Turnier fortgesetzt." })}
         onPublic={(enabled) =>
-          run("public", () => updateSettingsAction({ publicDisplayEnabled: enabled }), {
+          // setPublicDisplay works in every tournament status (e.g. Elo Mode after the final).
+          run("public", () => setPublicDisplayAction({ enabled }), {
             success: enabled ? "Öffentliche Anzeige eingeschaltet." : "Öffentliche Anzeige ausgeschaltet.",
           })
         }

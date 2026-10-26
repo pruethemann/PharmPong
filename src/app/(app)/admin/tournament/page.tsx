@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { CalendarClock } from "lucide-react";
 import { TournamentAdmin } from "@/components/admin/tournament/tournament-admin";
 import { EmptyState, PageTitle } from "@/components/pp/section";
+import { EloModeBanner } from "@/components/elo/elo-banners";
 import { requirePageUser } from "@/server/auth/current";
+import { getActiveGameMode } from "@/server/services/current-mode";
 import { listTiebreaks } from "@/server/services/admin-read";
 import { buildAuthedSnapshot } from "@/server/services/live-snapshot";
 import { getTournamentOverview } from "@/server/services/tournament";
@@ -42,6 +44,12 @@ export default async function AdminTournamentPage() {
   return (
     <>
       <PageTitle kicker="Turnierleitung" title="Turnier" />
+      {(await getActiveGameMode()) === "ELO" && (
+        <EloModeBanner href="/admin/elo" cta="Zur Elo-Verwaltung">
+          Gerade läuft der Elo-Modus: Turnierspiele werden nicht zugewiesen. Die Tische und Elo-Matches
+          verwaltest du unter Admin › Elo.
+        </EloModeBanner>
+      )}
       <TournamentAdmin
         lifecycle={{
           status: overview.status,
