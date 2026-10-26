@@ -5,7 +5,8 @@
 > (core UI: mode-aware navigation, Elo home, match builder, match page, rankings, player profile and the
 > `pnpm scenario elo` dev data) done · Step 6 (referee board, QR pages, rules, display) done · Step 7
 > (administration: mode card, `/admin/elo`, corrections, calculation runs, settings, audit labels) done ·
-> Step 8 (event simulation, E2E, docs, release prep) in progress.
+> Step 8 (database-level event simulation, E2E, docs, CHANGELOG, v0.2.0) done. Verified 2026-10-26: 387 unit,
+> 315 integration and 165 E2E runs green; not deployed (local validation only, see the deployment runbook).
 > Verbatim spec: [`claudecode-instructions/elo-spec.md`](../../claudecode-instructions/elo-spec.md).
 > Rating math: [rating-system.md](rating-system.md) · Validation: [rating-validation.md](rating-validation.md).
 

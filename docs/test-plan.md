@@ -5,16 +5,16 @@ Three automated layers plus a scripted full-event simulation. Everything except 
 
 | Layer                                        | Runner               | Location                          | Database                                       | Count                             |
 | -------------------------------------------- | -------------------- | --------------------------------- | ---------------------------------------------- | --------------------------------- |
-| Unit (pure logic)                            | Vitest `unit`        | `src/**/*.test.ts`                | none                                           | 201 tests / 21 files              |
-| Integration (services against real Postgres) | Vitest `integration` | `tests/integration/*.int.test.ts` | `pharmapong_test` (truncated before each test) | 243 tests / 17 files              |
-| End-to-end (browser)                         | Playwright           | `tests/e2e/*.spec.ts`             | `pharmapong_e2e` (production build on :3100)   | 101 runs across 3 device projects |
+| Unit (pure logic)                            | Vitest `unit`        | `src/**/*.test.ts`                | none                                           | 387 tests / 39 files              |
+| Integration (services against real Postgres) | Vitest `integration` | `tests/integration/*.int.test.ts` | `pharmapong_test` (truncated before each test) | 315 tests / 26 files              |
+| End-to-end (browser)                         | Playwright           | `tests/e2e/*.spec.ts`             | `pharmapong_e2e` (production build on :3100)   | 165 runs across 3 device projects |
 
 Run:
 
 ```bash
 pnpm db:up                 # Postgres in Docker (dev, test, e2e databases)
 pnpm verify                # typecheck + lint + format + unit + integration
-pnpm test:coverage         # unit coverage for src/server/domain (≥ 95% lines; currently ~99.6%)
+pnpm test:coverage         # unit coverage for src/server/domain (≥ 95% lines; currently 100% lines, Elo domain 100%)
 pnpm test:e2e              # builds and starts the app, then runs all Playwright projects
 ```
 
@@ -71,6 +71,7 @@ Integration tests may run in parallel against an alternative database:
 | `admin.spec.ts`        | correction blocked by a started semifinal → recovery wizard with typed confirmation → bracket consistent                                       |
 | `mobile.spec.ts`       | 13 pages: no horizontal overflow, buttons and tabs ≥ 44px                                                                                      |
 | `a11y.spec.ts`         | axe: no critical/serious violations on 17 pages (public, referee, admin)                                                                       |
+| `elo.spec.ts`          | Elo Mode: two-player match, referee and admin flows, live mode switch, axe on 13 Elo pages, phone layout (see below)                           |
 
 ### Full event simulation (`full-event.int.test.ts`, `pnpm simulate`)
 
@@ -89,6 +90,28 @@ The test then verifies:
 - the bracket is consistent (QF = qualifiers, SF/F = feeder winners);
 - no leftover lock rows, an audit row for every propose/confirm/correction, and the public snapshot shows the champion.
 
+## Elo Mode
+
+| Requirement                                                  | Tests                                                                                                                                                            |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| rating formula, spec examples A–D, zero-sum, symmetry        | `engine.test.ts` (exact examples, fast-check properties: zero-sum ≤ 1e-9, equal shares, permutation invariance, upset > expected win)                            |
+| replay = incremental application, determinism, corrections   | `replay.test.ts`, `elo-corrections.int.test.ts` (downstream rows rebuilt into a new run, replay twice → identical digest)                                        |
+| repeat rule 100/100/50/0, friendlies, provisional, champions | `repeat.test.ts`, `ranking.test.ts`, `elo-results.int.test.ts`, `elo-corrections.int.test.ts` (co-champions on an exact tie)                                     |
+| team sizes 1–4, consent bound to the roster, permissions     | `roster.test.ts`, `permissions.test.ts`, `elo-matches.int.test.ts`, `elo-results.int.test.ts` (nobody confirms for both sides)                                   |
+| one live match per table and per player, draft expiry        | `elo-constraints.int.test.ts` (partial unique index, `EloActivePlayer`), `elo-matches.int.test.ts`                                                               |
+| concurrency and idempotency                                  | `elo-results.int.test.ts` (retried and simultaneous confirmations rate once, two tables in parallel), `elo-corrections.int.test.ts` (correction vs confirmation) |
+| mode switch and competitive regression                       | `game-mode.int.test.ts` (blockers, WRONG_MODE both ways, deploy keeps the Elo event), `competitive-regression.int.test.ts`                                       |
+| no e-mail addresses, picker list only when signed in         | `elo-live.int.test.ts`, `elo-read-export.int.test.ts`                                                                                                            |
+| audit labels for every audited action                        | `admin-labels-coverage.test.ts`                                                                                                                                  |
+| a whole evening (24 players, 40+ matches, 2 tables)          | `elo-full-event.int.test.ts`, `pnpm simulate:elo` (numbers in [elo-mode/rating-validation.md](elo-mode/rating-validation.md))                                    |
+| rating behaviour over many events                            | `pnpm elo:validate` (Monte Carlo, [elo-mode/rating-validation.md](elo-mode/rating-validation.md))                                                                |
+
+`elo.spec.ts` (Playwright) plays a match with two players in two browsers (builder, consent on the other
+phone, start, pause, two-step report, confirmation, celebration), the referee resolving a dispute and
+abandoning a match, the admin's dry run, correction, parameters with typed confirmation, a refused mode switch
+and closing the round with the projector's champion finale, and open pages following a mode switch without a
+reload. It also scans the Elo pages with axe and checks them for overflow and touch-target size on phones.
+
 ## Manual checks before the event
 
 1. Run `pnpm scenario groups` on staging, then do a referee flow on two real phones at once (both tables).
@@ -96,3 +119,5 @@ The test then verifies:
 3. Turn wifi off on a phone during a match: the badge shows "Offline" and confirm is disabled. Reconnect and check that the result is either visible or still pending, never doubled.
 4. Admin: run a correction and the recovery wizard once on staging.
 5. Check that a restore from a Postgres backup works (see `deployment.md`).
+6. Elo Mode on staging: `pnpm scenario elo`, then play one match with two real phones (QR code → builder →
+   consent → stopwatch → report → confirm) and watch `/display` on the projector.

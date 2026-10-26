@@ -95,6 +95,12 @@ Every mutation runs in `withTournamentTx()` (`src/server/services/tx.ts`):
 Optimistic `version` columns on `Match`/`Team` reject stale client writes (`STALE_VERSION`).
 Constraint violations are mapped to domain error codes in `src/server/services/pg-errors.ts`.
 
+Elo Mode uses the same lock through `withEloTx` (`src/server/services/elo-core.ts`), which also cancels
+expired drafts lazily before every Elo write. `EloMatch.version`, `EloMatch.resultVersion` and
+`EloSession.configVersion` reject stale writes; consent carries the roster hash the player saw
+(`ROSTER_CHANGED` otherwise); result steps and corrections are idempotent (`IdempotencyKey`, scopes `elo.*`).
+Confirmation order comes from `EloSession.nextSequence`, taken under the lock, never from timestamps.
+
 ## Backups & recovery
 
 See [deployment.md](deployment.md).

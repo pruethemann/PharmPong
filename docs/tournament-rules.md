@@ -124,3 +124,32 @@ A referee who is an active member of one of the two teams cannot start, enter or
 
 - Referees' decisions are final at the table. Disputes go to the tournament admin.
 - Drink responsibly, or don't drink at all. Non-alcoholic options are explicitly welcome, and a cup of water counts exactly like any other cup.
+
+## 11. Elo Mode (apéro) 🏠
+
+A separate, social mode after the tournament. It does not change the tournament results above. The in-app
+`/rules` page shows these rules in German with the values of the current round.
+
+- **Free matches.** Anyone signed in creates a match on a free table: 1–4 players per side, teams formed per
+  match. The other team agrees to the exact roster on its own phone (or a referee records the agreement in
+  person). QR codes on the tables open the table's page; they grant nothing by themselves.
+- **Two throws per turn.** Each team has exactly 2 throws per normal turn, whatever its size: a solo player
+  throws both balls, a pair one each, teams of three or four rotate their throwers from turn to turn. The
+  game-play rules of section 2 apply otherwise.
+- **No time limit, no draws.** The stopwatch only counts up; an optional reminder (default after 20 minutes)
+  is a hint, never a decision.
+- **Results.** One team reports the winner, the other team confirms it (or the referee, if the admin chose
+  "Nur die Schiri bestätigt"). A disputed result counts only after a non-playing referee decided it.
+  Remaining cups are optional and never affect Elo.
+- **Elo.** Everyone starts at 100. Team strength is the average rating; the expected score uses scale 100 (a
+  100-point difference means about 91 % for the stronger team). At most K = 24 points move per match from
+  the losing to the winning team, split equally within each team: solo players carry the whole change
+  ("high risk, high reward"). Points are only moved, never created. Details:
+  [rating system](elo-mode/rating-system.md).
+- **Repeats and friendlies.** The same pairing (same players in the same teams) counts fully in its 1st and
+  2nd meeting, half in the 3rd and not at all afterwards. Friendlies never change Elo.
+- **Ranking and title.** Fewer than 3 rated games: provisional. The champion is the eligible player with the
+  highest rating when the admin closes the round; exact ties produce co-champions. Achievements (most
+  active, biggest upset, best comeback) are for fun and never change Elo.
+- **Conflicts of interest.** Nobody decides a match they play in, admins included. Admin corrections of
+  completed matches are always audited with a reason.

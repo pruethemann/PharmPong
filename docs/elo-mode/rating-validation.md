@@ -279,3 +279,46 @@ Champion by participation tier, Mixed: 25% never … 25% very active:
 | Best Comeback | p24      | +36.5 Elo           |
 
 <!-- END GENERATED -->
+
+## Database-level event simulation
+
+The Monte Carlo study above checks the rating _math_. This run checks the _system_: a complete Elo evening is
+played through the real services against a PostgreSQL database (both tables in parallel, consent, start,
+report, confirm, disputes, cancellations, a voided result, an abandoned match, a double-sent confirmation, an
+early correction and a manual recalculation), then the database is verified independently. The same scenario
+runs in CI as `tests/integration/elo-full-event.int.test.ts`. Regenerate the numbers with (scratch database
+only, it replaces the open event):
+
+```bash
+DATABASE_URL=postgresql://…/scratch pnpm simulate:elo --fresh
+```
+
+<!-- BEGIN GENERATED: pnpm simulate:elo -->
+
+_Generated 2026-10-26 11:39 (Europe/Zurich) with seed 7: 24 players, two tables, real services and database._
+
+| Check                                    | Result                                                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Matches created / confirmed              | 46 / 43 (40 rated, 3 friendlies)                                                                         |
+| Repeat rule applied (multiplier < 1)     | 2 matches                                                                                                |
+| Special cases                            | 1 cancelled draft, 1 dispute resolved by the referee, 1 pending result voided, 1 running match abandoned |
+| Team sizes                               | 1v1 3×, 1v2 3×, 1v3 3×, 1v4 2×, 2v1 2×, 2v2 18×, 2v3 3×, 3v2 2×, 3v3 3×, 3v4 2×, 4v3 2×, 4v4 3×          |
+| Matches running at the same time         | 2                                                                                                        |
+| Same confirmation sent twice in parallel | rated once (1 idempotent replay)                                                                         |
+| Early correction                         | new calculation run 2, everything after it replayed                                                      |
+| Manual recalculation                     | identical digest                                                                                         |
+| Dry run ("Prüfen")                       | max. deviation 0, 0 mismatches                                                                           |
+| Zero sum                                 | Σ ratings 2400.000000 = 2400.000000 expected (error 5.7e-14)                                             |
+| Locks left after the evening             | 0 player locks, 0 live matches                                                                           |
+| Calculation runs                         | 3 (initial, correction, manual recalculation)                                                            |
+| Champion(s)                              | Gast 20 (24 eligible)                                                                                    |
+
+| Rank | Player  | Elo   | Matches | Wins |
+| ---- | ------- | ----- | ------- | ---- |
+| 1    | Gast 20 | 136.8 | 11      | 9    |
+| 2    | Gast 10 | 132.6 | 7       | 6    |
+| 3    | Gast 04 | 126.2 | 9       | 8    |
+| 4    | Gast 03 | 121.4 | 10      | 8    |
+| 5    | Gast 11 | 109.5 | 6       | 4    |
+
+<!-- END GENERATED: pnpm simulate:elo -->

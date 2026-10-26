@@ -3,6 +3,12 @@
 Beer-Pong-Turnierplattform for the PharmaPong event at the Pharmazentrum, Universität Basel.
 Mobile-first, German UI, 24 players / 12 teams / 4 groups / 19 matches on 2 tables.
 
+Two game modes, switched by the admin: the **tournament** (fixed 2-player teams, groups, knockout, referees,
+countdown) and **Elo Mode** for the apéro afterwards (spontaneous matches with temporary 1–4-player teams,
+count-up stopwatch, individual session Elo starting at 100, results confirmed by both teams). Elo Mode:
+[user guide](docs/elo-mode/user-guide.md) · [admin guide](docs/elo-mode/admin-guide.md) ·
+[rating system](docs/elo-mode/rating-system.md).
+
 ## Stack
 
 Next.js 16 (App Router), React 19 · TypeScript strict · Tailwind v4 + shadcn/ui · Prisma 7 + PostgreSQL ·
@@ -38,6 +44,7 @@ pnpm scenario registration    # 12 complete teams, registration open
 pnpm scenario groups           # group stage: results, 2 live matches, 1 awaiting confirmation
 pnpm scenario knockout         # quarterfinals running
 pnpm scenario completed        # full 19-match tournament incl. tie, shootout, correction, champion
+pnpm scenario elo              # after the final: Elo Mode with ~24 matches, 2 live, 1 pending, 1 dispute
 ```
 
 Each scenario starts a fresh tournament (the previous one is cancelled; its history is kept).
@@ -64,7 +71,14 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 | `/rules`                          | everyone            | PharmaPong rules (reference vs house rules)                |
 | `/referee`                        | referees            | table operation, timer, two-step result entry              |
 | `/admin`                          | admins              | overview, tournament, matches, teams, users, audit         |
-| `/display`                        | public (if enabled) | 16:9 projector mode                                        |
+| `/display`                        | public (if enabled) | 16:9 projector mode (tournament or Elo view)               |
+| `/elo/play`                       | players             | Elo match builder (table → teams → preview)                |
+| `/elo/matches/[id]`               | everyone            | Elo match: consent, stopwatch, result, confirmation        |
+| `/elo/rankings`                   | everyone            | Elo leaderboard                                            |
+| `/elo/players/[id]`, `/me`        | everyone / players  | Elo profile with rating chart                              |
+| `/elo/table/[number]`             | everyone            | QR landing page of a table (grants nothing by itself)      |
+| `/elo/referee`                    | referees            | disputes, pending results, drafts                          |
+| `/admin/elo`, `/print/elo-qr`     | admins              | Elo administration, printable table QR codes               |
 | `/api/health`                     | monitoring          | DB health check                                            |
 
 ## Tools
@@ -75,6 +89,7 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 | `pnpm simulate`     | Plays a complete 19-match tournament on the dev DB                                           |
 | `pnpm export`       | JSON/CSV export of standings and results to `data/`                                          |
 | `pnpm elo:validate` | Elo Mode: Monte Carlo validation of the rating engine → `docs/elo-mode/rating-validation.md` |
+| `pnpm simulate:elo` | Elo Mode: a whole evening through the real services on a scratch DB, all guarantees checked  |
 
 ## Deployment
 
@@ -90,3 +105,7 @@ Before the event, set `ADMIN_INITIAL_PASSWORD` in Railway (web → Variables) an
 - [Database](docs/database.md)
 - [Deployment](docs/deployment.md)
 - [Test plan](docs/test-plan.md)
+- Elo Mode: [user guide](docs/elo-mode/user-guide.md), [admin guide](docs/elo-mode/admin-guide.md),
+  [rating system](docs/elo-mode/rating-system.md), [validation](docs/elo-mode/rating-validation.md),
+  [implementation plan](docs/elo-mode/implementation-plan.md)
+- [Changelog](CHANGELOG.md)

@@ -6,7 +6,7 @@ import { E2E_DATABASE_URL, E2E_ENV } from "./env";
 
 const ROOT = path.join(__dirname, "..", "..", "..");
 
-export type Scenario = "registration" | "groups" | "knockout" | "completed";
+export type Scenario = "registration" | "groups" | "knockout" | "completed" | "elo";
 
 function run(cmd: string, attempts = 1) {
   for (let i = 1; ; i++) {

@@ -125,6 +125,55 @@ Secrets are never committed (`.env*` is git-ignored except `.env.example`) and n
 | Table broken                        | `/admin/tournament` → disable the table (the scheduler skips it)                                                                                               |
 | Wrong result confirmed              | `/admin/matches` → correct, or use the recovery wizard if downstream matches started                                                                           |
 | Database slow                       | `railway metrics --service Postgres --since 1h`                                                                                                                |
+| Elo: wrong result confirmed         | `/admin/elo` → Matches → "Korrigieren" (reason required; everything after it is recalculated)                                                                  |
+| Elo: ratings look wrong             | `/admin/elo` → "Prüfen" (dry run), then "Neu berechnen" (typed confirmation)                                                                                   |
+| Elo: mode switch refused            | `/admin` → the card lists the blocking matches; finish or cancel them ("Offene Aufstellungen abbrechen")                                                       |
+
+## Releasing Elo Mode (v0.2.0)
+
+> **Not deployed yet.** Everything below was rehearsed locally only; no Railway setting, variable or database
+> was changed. Deploying is a separate, explicit decision of the organizers.
+
+**What changes in production.** Two additive migrations run in pre-deploy
+(`20261026090000_elo_mode`: new enums, Elo tables, `Tournament.gameMode` with default `COMPETITIVE` and
+`gameModeChangedAt`; `20261026090100_elo_constraints`: partial unique indexes and CHECK constraints). No
+existing table, column, enum or row is dropped or rewritten; the running tournament stays in `COMPETITIVE`
+mode. Pre-deploy (`seed:admin`) now uses `ensureTournamentForDeploy`, which keeps an event that is in Elo Mode
+or has an open Elo round instead of starting a new tournament. No new environment variable is needed; table QR
+codes use `APP_URL`.
+
+**Rehearsed locally** (see [database.md](database.md#creating-migrations)): `migrate deploy` on an empty
+database and on a copy holding a finished tournament (row counts unchanged, mode `COMPETITIVE`); drift check
+clean; the previous release's `migrate deploy` against the new schema ("No pending migrations", rollback
+rehearsal); `pnpm build`; the full unit, integration and E2E suites; `pnpm simulate:elo` on a scratch database.
+
+**Runbook**
+
+1. **Freeze.** No deploys during the event. Deploy at least a day before, or after the event.
+2. **Backup first.** Postgres service → Backups → manual backup, plus `railway run --service web pnpm export`
+   (JSON/CSV in `data/`).
+3. **Deploy** as usual (`railway up` from a clean checkout of the release commit). Pre-deploy applies the
+   migrations; a failed migration stops the release and the old version keeps serving.
+4. **Smoke test.** `/api/health`; log in as admin; `/admin` shows the "Spielmodus" card with "Turnier";
+   `/tournament` unchanged; `/admin/elo` loads (no round yet). Optional on staging only:
+   `pnpm simulate:elo --fresh` with `ALLOW_DEMO_SEED=true`.
+5. **At the apéro.** After the final: `/admin` → "Zum Elo-Modus wechseln" (opens the first round), enable the
+   public display, print `/print/elo-qr` for the tables. Close the round on `/admin/elo` to crown the champion.
+
+**Rollback**
+
+- **Application only (preferred).** Switch back to the tournament mode on `/admin` (needs no open Elo matches:
+  finish, confirm or cancel them), then redeploy the previous deployment in the dashboard. The old release
+  ignores the new tables and columns; its `migrate deploy` reports nothing pending, so no database change is
+  needed and the Elo data stays for a later release.
+- **Full database rollback** only after a fresh backup and only if really required: drop the Elo objects in
+  reverse order (constraints migration first, then the tables and enums of `20261026090000_elo_mode`, then the
+  two `Tournament` columns), and mark both migrations as rolled back with
+  `pnpm prisma migrate resolve --rolled-back <migration name>`. Restoring the pre-deploy backup is simpler
+  and safer.
+- **A failed migration** (release stopped in pre-deploy): inspect the error in the deploy logs, fix it, then
+  `pnpm prisma migrate resolve --rolled-back <migration name>` (or `--applied` if it actually completed) before
+  the next deploy.
 
 ## Local production check
 

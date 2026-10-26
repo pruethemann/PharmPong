@@ -1,6 +1,6 @@
 {
   "name": "pharmapong",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -27,7 +27,8 @@
     "export": "tsx scripts/export-tournament.ts",
     "postinstall": "prisma generate",
     "scenario": "tsx scripts/dev-scenario.ts",
-    "elo:validate": "tsx scripts/elo-validation.ts"
+    "elo:validate": "tsx scripts/elo-validation.ts",
+    "simulate:elo": "tsx scripts/simulate-elo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",

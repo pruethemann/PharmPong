@@ -27,6 +27,7 @@ import {
   assertDemoSeedAllowed,
 } from "../src/server/sim/demo-data";
 import { seededRng, simulateTournament } from "../src/server/sim/simulate-tournament";
+import { retireEloSessions } from "../src/server/sim/elo-dev";
 import { seedEloEvent } from "../src/server/sim/elo-scenario";
 import { suggestAssignments } from "../src/server/domain/scheduler";
 
@@ -75,30 +76,6 @@ const FIRST_NAMES = [
   "Chiara",
   "Robin",
 ];
-
-/**
- * Dev reset of Elo Mode: close every running Elo session. Live matches are cancelled, open
- * results voided and the player locks freed (they are global, so a stale session would block
- * the demo players in the next scenario). History stays.
- */
-async function retireEloSessions(): Promise<void> {
-  const sessions = await db.eloSession.findMany({
-    where: { status: { not: "CLOSED" } },
-    select: { id: true },
-  });
-  for (const { id } of sessions) {
-    await db.eloMatch.updateMany({
-      where: { sessionId: id, status: { in: ["DRAFT", "IN_PROGRESS"] } },
-      data: { status: "CANCELLED", pausedAt: null, cancelReason: "Dev-Szenario neu aufgesetzt" },
-    });
-    await db.eloMatch.updateMany({
-      where: { sessionId: id, status: { in: ["AWAITING_CONFIRMATION", "DISPUTED"] } },
-      data: { status: "VOIDED" },
-    });
-    await db.eloActivePlayer.deleteMany({ where: { sessionId: id } });
-    await db.eloSession.update({ where: { id }, data: { status: "CLOSED", closedAt: new Date() } });
-  }
-}
 
 async function freshTournament(admin: Actor): Promise<string> {
   await retireEloSessions();

@@ -32,7 +32,7 @@ Near-real-time updates come from cheap revision polling.
 | Domain   | `src/server/domain`   | Pure TypeScript. State machines (`tournament-state`, `match-state`), secure draw, bracket template and slot resolution, result validation, standings and tiebreaks, scheduler, timer. An ESLint rule forbids importing Prisma, Next or React here. ≥ 95% unit-test coverage. |
 | Services | `src/server/services` | One function per use case, signature `(actor, input, opts?)`. Each calls `assertRole` (defense in depth), runs inside `withTournamentTx`, validates transitions with the domain, writes `AuditLog` (+ `MatchEvent` for matches), and throws `DomainError(code)`.             |
 | Actions  | `src/server/actions`  | Thin `"use server"` wrappers built with `defineAction({schema, access, handler})`: Zod parsing, role gate, `mustChangePassword` gate, mapping `DomainError` to German messages, returning `ActionResult`.                                                                    |
-| Routes   | `src/app`             | Pages call `requirePageUser(role)`. Route handlers: `/api/health`, `/api/live`, `/api/live/public`, `/api/logos/[teamId]`, `/api/admin/export`.                                                                                                                              |
+| Routes   | `src/app`             | Pages call `requirePageUser(role)`. Route handlers: `/api/health`, `/api/live`, `/api/live/public`, `/api/logos/[teamId]`, `/api/admin/export`, plus Elo Mode `/api/mode`, `/api/elo/live`, `/api/elo/live/public`, `/api/admin/elo-export`.                                 |
 | UI       | `src/components`      | `ui/` is shadcn (Base UI). `pp/` holds the design-system primitives. Feature folders: `auth/`, `team/`, `referee/`, `match/`, `live/`, `bracket/`, `standings/`, `display/`, `admin/`.                                                                                       |
 
 ## Consistency and concurrency
@@ -106,6 +106,42 @@ READY/ASSIGNED/IN_PROGRESS/AWAITING → FORFEITED (admin) · abort (admin) → R
 - If an affected downstream match has not started, the correction propagates automatically.
 - Otherwise the service raises `DOWNSTREAM_STARTED`, and only the audited recovery workflow (`executeRecovery`, typed confirmation) can void the affected chain.
 
+## Elo Mode
+
+A second, independent game mode for the social part of the event. Same stack, same layers, same consistency
+model; it shares the tournament row (event), the two `GameTable` rows and the users with the tournament
+mode, and nothing else. Design and decisions: [elo-mode/implementation-plan.md](elo-mode/implementation-plan.md).
+
+- **Mode.** `Tournament.gameMode` (`COMPETITIVE` | `ELO`) is read under the tournament lock
+  (`LockedTournament.gameMode`, `assertGameMode`). Competitive writes refuse in Elo Mode (`WRONG_MODE`) and
+  vice versa; the switch (`setGameMode`) is refused while the current mode has open matches. `ModeWatch`
+  (client) polls `/api/mode` every 10 s and refreshes server-rendered pages after a switch.
+- **Domain** (`src/server/domain/elo/`, pure, ≥ 95 % coverage): `RatingEngine` interface with `PHARMA_ELO_V1`,
+  preview, repeat-match rule, deterministic `replaySession` (a fold of `applyMatch`), ranking with exact ties,
+  achievements, roster validation, match state machine and the permission matrix (`eloActionDenial`) that the
+  services enforce and the snapshot sends as UI hints.
+- **Services** (`src/server/services/elo-*.ts`): every Elo write runs in `withEloTx` (tournament lock, lazy
+  expiry of 10-minute drafts, revision bump). Locks: partial unique index for one live match per table,
+  `EloActivePlayer` (user PK) for one live match per player; both are released by the first result report.
+  Consent is bound to `rosterHash`; result steps are idempotent (`runIdempotent`) and version-checked.
+- **Ratings.** A confirmation takes the next sequence number and appends its step to the active
+  `EloRatingRun`. Corrections, voids of completed matches, parameter changes and manual recalculation replay
+  the whole session into a new run (the old run stays as history). The dry run (`verifyRatings`) compares the
+  stored projection with a fresh replay.
+- **Live.** `/api/elo/live` (signed in) and `/api/elo/live/public` (only with the public display on) follow
+  the `/api/live` contract (revision fast path, `REPEATABLE READ` snapshot, per-revision memo). Elo pages use
+  `EloLiveProvider` around the same `useLive` hook. Public snapshots contain display names and ratings only;
+  the player list for the match builder is part of the signed-in extras.
+- **UI** (`src/components/elo`, `src/components/admin/elo`): home/arena, match builder and picker, match page
+  per state, referee board, rankings, profile with SVG chart, QR landing, projector view, admin page.
+
+```
+Elo match: DRAFT ─(both consents = rosterHash, start)→ IN_PROGRESS ─(report)→ AWAITING_CONFIRMATION ─(confirm)→ COMPLETED
+           │ cancel / leave / expiry                   │ staff abandon      │ dispute → DISPUTED ─(staff)→ COMPLETED
+           ▼                                           ▼                    │ staff void ↓                   │ admin correct ↻
+       CANCELLED                                   CANCELLED                VOIDED  ←──── admin void ───────┘
+```
+
 ## Files worth knowing
 
 | File                                   | Why                                                          |
@@ -117,3 +153,7 @@ READY/ASSIGNED/IN_PROGRESS/AWAITING → FORFEITED (admin) · abort (admin) → R
 | `src/server/domain/standings.ts`       | ranking rules                                                |
 | `src/server/services/live-snapshot.ts` | polling API                                                  |
 | `scripts/dev-scenario.ts`              | realistic data states for development and demos              |
+| `src/server/services/elo-core.ts`      | Elo transaction, locks, draft expiry, match loading          |
+| `src/server/services/elo-ratings.ts`   | confirmation step, replay into a new run, dry run            |
+| `src/server/domain/elo/replay.ts`      | the one deterministic rating code path                       |
+| `src/server/sim/simulate-elo-event.ts` | a whole Elo evening through the services (`simulate:elo`)    |
