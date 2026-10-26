@@ -4,6 +4,8 @@ import { EmptyState, PageTitle } from "@/components/pp/section";
 import { loadLiveInitial, viewerOf } from "@/components/live/load-live";
 import { TOURNAMENT_TABS, type TournamentTab } from "@/components/live/live-view";
 import { TournamentView } from "@/components/live/tournament-view";
+import { EloModeBanner } from "@/components/elo/elo-banners";
+import { getActiveGameMode } from "@/server/services/current-mode";
 
 export const metadata: Metadata = { title: "Turnier" };
 export const dynamic = "force-dynamic";
@@ -26,12 +28,16 @@ export default async function TournamentPage({
       </>
     );
   }
+  const elo = (await getActiveGameMode()) === "ELO";
   return (
-    <TournamentView
-      mode={live.mode}
-      initial={live.snapshot}
-      initialTab={initialTab}
-      mustChangePassword={viewerOf(live) === "mustChangePassword"}
-    />
+    <>
+      {elo && <EloModeBanner />}
+      <TournamentView
+        mode={live.mode}
+        initial={live.snapshot}
+        initialTab={initialTab}
+        mustChangePassword={viewerOf(live) === "mustChangePassword"}
+      />
+    </>
   );
 }

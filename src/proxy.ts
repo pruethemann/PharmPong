@@ -1,7 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 // Optimistic redirect only: real authorization happens in pages, actions and services.
-const PROTECTED = ["/team", "/referee", "/admin", "/profile", "/elo/play", "/elo/referee", "/elo/players/me"];
+const PROTECTED = [
+  "/team",
+  "/referee",
+  "/admin",
+  "/profile",
+  "/print",
+  "/elo/play",
+  "/elo/referee",
+  "/elo/players/me",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -22,6 +31,7 @@ export const config = {
     "/referee/:path*",
     "/admin/:path*",
     "/profile/:path*",
+    "/print/:path*",
     "/elo/play",
     "/elo/referee",
     "/elo/players/me",

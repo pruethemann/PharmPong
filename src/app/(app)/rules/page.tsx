@@ -1,8 +1,26 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AlarmClock, CupSoda, FlaskConical, Home, Scale, Sparkles, Target, Trophy } from "lucide-react";
+import {
+  AlarmClock,
+  Calculator,
+  CheckCheck,
+  CupSoda,
+  FlaskConical,
+  Home,
+  Medal,
+  Repeat2,
+  Scale,
+  Shuffle,
+  Sparkles,
+  Target,
+  Trophy,
+  UsersRound,
+} from "lucide-react";
 import { PageTitle, Section } from "@/components/pp/section";
+import { repeatRuleLines } from "@/lib/i18n/de-elo";
+import { formatPercent } from "@/lib/elo-format";
 import { db } from "@/server/db";
+import { getEloRulesInfo, type EloRulesInfo } from "@/server/services/elo-read";
 import { getCurrentTournamentId } from "@/server/services/tx";
 
 export const metadata: Metadata = { title: "Regeln" };
@@ -45,14 +63,148 @@ function RuleCard({
   );
 }
 
+/** Win probability of the stronger side at a given rating difference (pharmaelo-v1). */
+const winChance = (diff: number, scale: number) => 1 / (1 + 10 ** (-diff / scale));
+
+/** The house rules of Elo Mode; numbers come from the current round. */
+function EloRules({ info }: { info: EloRulesInfo }) {
+  const { initialRating, kFactor, ratingScale, repeatMultipliers } = info.params;
+  const repeat = repeatRuleLines(repeatMultipliers);
+  return (
+    <div id="elo" className="flex scroll-mt-24 flex-col gap-3">
+      <Section title="Elo-Modus (Apéro)">
+        <p className="text-muted-foreground max-w-2xl text-lg">
+          Nach dem Turnier wird frei gespielt: spontane Matches auf beiden Tischen, Teams für jedes Match neu
+          zusammengestellt, eine eigene Elo-Rangliste für den Abend. Die Turnierwertung oben bleibt davon
+          unberührt.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <RuleCard icon={<Shuffle />} title="Freie Matches" house>
+            <ul>
+              <li>
+                Pro Seite spielen{" "}
+                {info.minTeamSize === info.maxTeamSize
+                  ? info.minTeamSize
+                  : `${info.minTeamSize} bis ${info.maxTeamSize}`}{" "}
+                Personen. Teams gelten nur für ein Match.
+              </li>
+              <li>
+                Wer ein Match erstellt, wählt Tisch und Teams. Das andere Team bestätigt die Aufstellung auf
+                dem eigenen Handy, oder die Schiri erfasst die Zustimmung vor Ort.
+              </li>
+              <li>
+                <strong>Kein Zeitlimit:</strong> Gespielt wird, bis ein Team keine Becher mehr hat. Die Uhr
+                zählt nur mit
+                {info.softReminderMinutes
+                  ? ` und erinnert nach ${info.softReminderMinutes} Minuten ans Finale`
+                  : ""}
+                .
+              </li>
+              <li>Unentschieden gibt es nicht.</li>
+            </ul>
+          </RuleCard>
+          <RuleCard icon={<UsersRound />} title="Zwei Würfe pro Zug" house>
+            <ul>
+              <li>
+                Jedes Team hat pro normalem Zug <strong>genau 2 Würfe</strong>, egal wie gross es ist.
+              </li>
+              <li>Solo wirft die Person beide Bälle, zu zweit wirft jede Person einen.</li>
+              <li>
+                Zu dritt oder viert wechseln sich die Werfenden von Zug zu Zug ab, damit alle drankommen.
+              </li>
+              <li>Sonst gelten die Grundregeln oben (Balls Back, Bounce, Re-Rack, Final-Cup-Redemption).</li>
+            </ul>
+          </RuleCard>
+          <RuleCard icon={<CheckCheck />} title="Resultat und Bestätigung" house>
+            <ul>
+              <li>Nach dem Spiel trägt ein Team das Resultat ein: Wer hat gewonnen?</li>
+              <li>
+                {info.resultPolicy === "REFEREE_ONLY"
+                  ? "Die Schiri bestätigt das Resultat. Erst dann zählt es."
+                  : "Das andere Team bestätigt es auf dem eigenen Handy. Erst dann zählt es."}
+              </li>
+              <li>
+                Stimmt etwas nicht, gibt es «Einspruch». Dann entscheidet die Schiri, bis dahin zählt das
+                Match nicht.
+              </li>
+              <li>Übrige Becher anzugeben ist freiwillig und ändert keine Elo-Punkte.</li>
+            </ul>
+          </RuleCard>
+          <RuleCard icon={<Calculator />} title="So funktioniert Elo" house>
+            <ul>
+              <li>
+                Alle starten mit <strong>{initialRating} Elo</strong>. Die Stärke eines Teams ist der
+                Durchschnitt seiner Personen.
+              </li>
+              <li>
+                Daraus berechnet die App die Siegchance: Bei 50 Punkten Unterschied gewinnt das stärkere Team
+                zu {formatPercent(winChance(50, ratingScale))}, bei 100 Punkten zu{" "}
+                {formatPercent(winChance(100, ratingScale))}.
+              </li>
+              <li>
+                Nach dem Match wandern Punkte vom Verlierer- zum Siegerteam: höchstens {kFactor} pro Team.
+                Gewinnt der Favorit, sind es wenige, bei einer Überraschung viele.
+              </li>
+              <li>
+                Die Punkte eines Teams werden gleichmässig auf seine Personen verteilt.{" "}
+                <strong>Solo trägt man die ganze Änderung allein: hohes Risiko, hohe Belohnung.</strong>
+              </li>
+              <li>Was ein Team gewinnt, verliert das andere. Die Summe aller Punkte bleibt gleich.</li>
+            </ul>
+          </RuleCard>
+          <RuleCard icon={<Repeat2 />} title="Wiederholungen und Freundschaftsspiele" house>
+            <ul>
+              {repeatMultipliers.every((m) => m >= 1) ? (
+                <li>Wiederholungen zählen in dieser Runde immer voll.</li>
+              ) : (
+                <li>
+                  Spielen genau dieselben Personen in denselben Teams nochmals gegeneinander, zählt das Match
+                  weniger:
+                  <ul className="mt-1">
+                    {repeat.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </li>
+              )}
+              <li>
+                Ein <strong>Freundschaftsspiel</strong> (Schalter «Um Elo spielen» aus) ändert niemandes Elo.
+              </li>
+            </ul>
+          </RuleCard>
+          <RuleCard icon={<Medal />} title="Rangliste und Titel" house>
+            <ul>
+              <li>
+                <strong>Vorläufig</strong> ist, wer weniger als {info.minGamesForChampion} gewertete Spiele
+                hat.
+              </li>
+              <li>
+                Champion wird, wer am Ende der Runde titelberechtigt ist und die meisten Elo hat. Bei exakt
+                gleichem Wert gibt es mehrere Champions.
+              </li>
+              <li>
+                Auszeichnungen (am aktivsten, grösste Überraschung, bestes Comeback) sind nur zum Spass und
+                ändern keine Punkte.
+              </li>
+            </ul>
+          </RuleCard>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
 export default async function RulesPage() {
   const id = await getCurrentTournamentId();
-  const t = id
-    ? await db.tournament.findUnique({
-        where: { id },
-        select: { matchDurationSec: true, bombRuleEnabled: true },
-      })
-    : null;
+  const [t, elo] = await Promise.all([
+    id
+      ? db.tournament.findUnique({
+          where: { id },
+          select: { matchDurationSec: true, bombRuleEnabled: true },
+        })
+      : null,
+    getEloRulesInfo(id),
+  ]);
   const minutes = Math.round((t?.matchDurationSec ?? 900) / 60);
   const bomb = t?.bombRuleEnabled ?? false;
 
@@ -181,6 +333,8 @@ export default async function RulesPage() {
           </p>
         </RuleCard>
       </Section>
+
+      <EloRules info={elo} />
     </>
   );
 }

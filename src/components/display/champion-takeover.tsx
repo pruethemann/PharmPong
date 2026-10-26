@@ -17,7 +17,7 @@ const BUBBLES = [
 ];
 
 /** Erlenmeyer flask with rising bubbles (hidden for reduced motion). */
-function BubblingFlask() {
+export function BubblingFlask() {
   return (
     <div className="relative h-[16em] w-[13em]" aria-hidden="true">
       <div className="absolute inset-x-[2.5em] -top-[3em] bottom-[9em] overflow-visible motion-reduce:hidden">

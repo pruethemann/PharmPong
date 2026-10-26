@@ -1,4 +1,5 @@
-import { Pause, Trophy } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Pause, Shuffle, Trophy } from "lucide-react";
 import { teamLabel } from "@/lib/elo-format";
 import { cn } from "@/lib/utils";
 import { PlayerAvatar } from "./player-avatar";
@@ -67,5 +68,48 @@ export function EloChampionBanner({
         </p>
       </div>
     </section>
+  );
+}
+
+/**
+ * On tournament pages while Elo Mode runs: the tournament data stays as it is (history), the
+ * evening continues in Elo Mode.
+ */
+export function EloModeBanner({
+  href = "/",
+  cta = "Zum Elo-Modus",
+  children,
+  className,
+}: {
+  href?: string;
+  cta?: string;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      role="status"
+      className={cn(
+        "border-accent/60 bg-accent/10 flex flex-col gap-3 rounded-2xl border-2 p-4 sm:flex-row sm:items-center",
+        className,
+      )}
+    >
+      <span className="bg-accent text-accent-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
+        <Shuffle className="size-5" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-xl leading-tight">Elo-Modus aktiv</p>
+        <p className="text-foreground/85 text-sm">
+          {children ??
+            "Gerade wird frei gespielt. Die Turnierdaten hier bleiben unverändert zum Nachschauen."}
+        </p>
+      </div>
+      <Link
+        href={href}
+        className="text-accent inline-flex min-h-12 items-center gap-1.5 font-semibold underline-offset-4 hover:underline"
+      >
+        {cta} <ArrowRight className="size-4" aria-hidden="true" />
+      </Link>
+    </div>
   );
 }

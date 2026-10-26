@@ -5,10 +5,11 @@ import { db, type Db } from "@/server/db";
 import { assertRole } from "@/server/auth/roles";
 import type { Actor } from "@/server/auth/sessions";
 import { fail } from "@/server/domain/errors";
+import { DEFAULT_ELO_PARAMS, DEFAULT_SESSION_SETTINGS } from "@/server/domain/elo/config";
 import { rankPlayers } from "@/server/domain/elo/ranking";
-import type { EloMatchStatus, Side } from "@/server/domain/elo/types";
+import type { EloMatchStatus, EloParams, Side } from "@/server/domain/elo/types";
 import { currentEloSession } from "./elo-core";
-import { activeRun } from "./elo-ratings";
+import { activeRun, paramsOfRun } from "./elo-ratings";
 import { getCurrentTournamentId } from "./tx";
 
 const ms = (d: Date | null): number | null => (d ? d.getTime() : null);
@@ -313,6 +314,38 @@ export async function getEloPlayerProfile(
     recentMatches: recent,
     teammates: [...team].map(([id, t]) => ({ userId: id, ...t })).sort(byCount),
     opponents: [...opp].map(([id, o]) => ({ userId: id, ...o })).sort(byCount),
+  };
+}
+
+export type EloRulesInfo = {
+  params: EloParams;
+  minTeamSize: number;
+  maxTeamSize: number;
+  minGamesForChampion: number;
+  softReminderMinutes: number | null;
+  resultPolicy: "DUAL_TEAM_CONFIRMATION" | "REFEREE_ONLY";
+};
+
+/** Values for the rules page: the current round's settings, else the defaults. */
+export async function getEloRulesInfo(tournamentId: string | null, client: Db = db): Promise<EloRulesInfo> {
+  const session = tournamentId ? await currentEloSession(client, tournamentId) : null;
+  if (!session) {
+    return {
+      params: DEFAULT_ELO_PARAMS,
+      minTeamSize: DEFAULT_SESSION_SETTINGS.minTeamSize,
+      maxTeamSize: DEFAULT_SESSION_SETTINGS.maxTeamSize,
+      minGamesForChampion: DEFAULT_SESSION_SETTINGS.minGamesForChampion,
+      softReminderMinutes: DEFAULT_SESSION_SETTINGS.softReminderMinutes,
+      resultPolicy: DEFAULT_SESSION_SETTINGS.resultPolicy,
+    };
+  }
+  return {
+    params: paramsOfRun(await activeRun(client, session.id)),
+    minTeamSize: session.minTeamSize,
+    maxTeamSize: session.maxTeamSize,
+    minGamesForChampion: session.minGamesForChampion,
+    softReminderMinutes: session.softReminderMinutes,
+    resultPolicy: session.resultPolicy,
   };
 }
 

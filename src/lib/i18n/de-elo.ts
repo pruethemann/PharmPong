@@ -62,3 +62,40 @@ export const eloEventLabel: Record<string, string> = {
   ABANDONED: "Abgebrochen (Schiri)",
   CORRECTED: "Korrigiert (Turnierleitung)",
 };
+
+const countsAs = (m: number): string =>
+  m >= 1
+    ? "zählt voll"
+    : m <= 0
+      ? "zählt nicht mehr"
+      : m === 0.5
+        ? "zählt zur Hälfte"
+        : `zählt zu ${Math.round(m * 100)}\u00a0%`;
+
+/**
+ * The repeat-match rule in words, consecutive equal values grouped:
+ * [1, 1, 0.5, 0] → ["1. und 2. Begegnung: zählt voll", "3. Begegnung: zählt zur Hälfte",
+ * "ab der 4. Begegnung: zählt nicht mehr"].
+ */
+export function repeatRuleLines(multipliers: readonly number[]): string[] {
+  if (multipliers.length === 0) return [];
+  if (multipliers.every((m) => m === multipliers[0])) return [`Jede Begegnung ${countsAs(multipliers[0])}`];
+  const lines: string[] = [];
+  let start = 0;
+  for (let i = 1; i <= multipliers.length; i++) {
+    if (i < multipliers.length && multipliers[i] === multipliers[start]) continue;
+    const last = i === multipliers.length;
+    const from = start + 1;
+    const to = i;
+    const label = last
+      ? `ab der ${from}. Begegnung`
+      : from === to
+        ? `${from}. Begegnung`
+        : to === from + 1
+          ? `${from}. und ${to}. Begegnung`
+          : `${from}. bis ${to}. Begegnung`;
+    lines.push(`${label}: ${countsAs(multipliers[start])}`);
+    start = i;
+  }
+  return lines;
+}

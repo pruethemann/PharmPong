@@ -26,7 +26,8 @@ export function Stopwatch({
   timer: EloLiveTimer;
   clockOffsetMs?: number;
   reminderMinutes?: number | null;
-  size?: "sm" | "md" | "lg" | "xl";
+  /** "display": em-based for the projector (scales with the display root font). */
+  size?: "sm" | "md" | "lg" | "xl" | "display";
   className?: string;
 }) {
   // null until mounted: the server render must not depend on the clock (hydration).
@@ -59,22 +60,31 @@ export function Stopwatch({
           size === "md" && "text-5xl",
           size === "lg" && "text-7xl sm:text-8xl",
           size === "xl" && "text-[10rem]",
+          size === "display" && "text-[7em]",
           paused ? "text-muted-foreground" : "text-foreground",
         )}
       >
         {text}
       </span>
       {paused ? (
-        <span className="bg-warning font-display text-warning-foreground inline-flex items-center gap-2 rounded-full px-3 py-1 text-base">
-          <Pause className="size-4" aria-hidden="true" /> Pausiert
+        <span
+          className={cn(
+            "bg-warning font-display text-warning-foreground inline-flex items-center gap-2 rounded-full px-3 py-1 text-base",
+            size === "display" && "text-[1.6em]",
+          )}
+        >
+          <Pause className="size-[1em]" aria-hidden="true" /> Pausiert
         </span>
       ) : remind ? (
         <span
           role="status"
-          className="border-warning/60 text-warning inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold"
+          className={cn(
+            "border-warning/60 text-warning inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold",
+            size === "display" && "text-[1.4em]",
+          )}
         >
-          <BellRing className="size-4" aria-hidden="true" /> Über {reminderMinutes} Min. gespielt: Zeit fürs
-          Finale
+          <BellRing className="size-[1em]" aria-hidden="true" /> Über {reminderMinutes} Min. gespielt: Zeit
+          fürs Finale
         </span>
       ) : null}
     </div>
