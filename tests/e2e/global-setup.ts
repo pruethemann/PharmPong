@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { chromium, type FullConfig } from "@playwright/test";
 import { loginViaUi } from "./support/auth";
 import { clearThrottles, migrate, scenario } from "./support/db";
-import { AUTH_DIR, BASE_URL, USERS, storageStateFor, type Role } from "./support/env";
+import { AUTH_DIR, BASE_URL, DE_LOCALE_COOKIE, USERS, storageStateFor, type Role } from "./support/env";
 
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   migrate();
@@ -16,6 +16,7 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   try {
     for (const role of Object.keys(USERS) as Role[]) {
       const context = await browser.newContext({ baseURL: BASE_URL, locale: "de-CH" });
+      await context.addCookies([DE_LOCALE_COOKIE]);
       const page = await context.newPage();
       await loginViaUi(page, USERS[role]);
       await context.storageState({ path: storageStateFor(role) });

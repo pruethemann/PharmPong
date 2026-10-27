@@ -6,13 +6,18 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
 import { loginViaUi } from "./support/auth";
 import { axeScan, checkPhoneLayout } from "./support/checks";
 import { clearThrottles, scenario } from "./support/db";
-import { BASE_URL, storageStateFor, type Role } from "./support/env";
+import { BASE_URL, DE_STATE, storageStateFor, type Role } from "./support/env";
 
 const LIVE = { timeout: 15_000 };
 const MODE_FOLLOW = { timeout: 25_000 }; // ModeWatch polls every 10 s
 
 async function signedIn(browser: Browser, email: string): Promise<Page> {
-  const ctx = await browser.newContext({ baseURL: BASE_URL, locale: "de-CH", timezoneId: "Europe/Zurich" });
+  const ctx = await browser.newContext({
+    baseURL: BASE_URL,
+    locale: "de-CH",
+    timezoneId: "Europe/Zurich",
+    storageState: DE_STATE,
+  });
   const page = await ctx.newPage();
   await loginViaUi(page, email);
   return page;

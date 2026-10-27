@@ -3,15 +3,17 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FlaskConical } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createTeamAction } from "@/server/actions/teams";
-import { MOTTO_MAX, TEAM_NAME_MAX } from "@/lib/validation/team";
+import { MOTTO_MAX, TEAM_NAME_MAX, TEAM_NAME_MIN } from "@/lib/validation/team";
 import { FormField, describedBy } from "./form-field";
 
 export function CreateTeamCard() {
+  const t = useTranslations("team.create");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -29,7 +31,7 @@ export function CreateTeamCard() {
         return;
       }
       setErrors({});
-      toast.success("Team gegründet! Jetzt Partner:in einladen.");
+      toast.success(t("created"));
       router.refresh();
     });
   }
@@ -45,33 +47,38 @@ export function CreateTeamCard() {
         </span>
         <div>
           <h2 id="create-team-title" className="text-2xl leading-none">
-            Team gründen
+            {t("title")}
           </h2>
-          <p className="text-muted-foreground text-sm">Du bekommst einen Einladungscode für dein Duo.</p>
+          <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
         </div>
       </div>
       <form action={submit} className="flex flex-col gap-4" noValidate>
-        <FormField id="team-name" label="Teamname" error={errors.name} hint="2 bis 32 Zeichen">
+        <FormField
+          id="team-name"
+          label={t("nameLabel")}
+          error={errors.name}
+          hint={t("nameHint", { min: TEAM_NAME_MIN, max: TEAM_NAME_MAX })}
+        >
           <Input
             id="team-name"
             name="name"
             required
-            minLength={2}
+            minLength={TEAM_NAME_MIN}
             maxLength={TEAM_NAME_MAX}
             autoComplete="off"
-            placeholder="z. B. Die Pipettenprofis"
+            placeholder={t("namePlaceholder")}
             aria-invalid={!!errors.name}
             aria-describedby={describedBy("team-name", errors.name, true)}
           />
         </FormField>
-        <FormField id="team-motto" label="Motto (optional)" error={errors.motto}>
+        <FormField id="team-motto" label={t("mottoLabel")} error={errors.motto}>
           <Textarea
             id="team-motto"
             name="motto"
             rows={2}
             maxLength={MOTTO_MAX}
             autoComplete="off"
-            placeholder="Präzise bis zum letzten Becher"
+            placeholder={t("mottoPlaceholder")}
             aria-invalid={!!errors.motto}
             aria-describedby={describedBy("team-motto", errors.motto)}
           />
@@ -82,7 +89,7 @@ export function CreateTeamCard() {
           </p>
         )}
         <Button type="submit" size="lg" disabled={pending}>
-          {pending ? "Wird gegründet …" : "Team gründen"}
+          {pending ? t("submitting") : t("submit")}
         </Button>
       </form>
     </section>

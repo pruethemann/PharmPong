@@ -2,11 +2,13 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { HoldToConfirm } from "@/components/pp/hold-to-confirm";
 import { leaveTeamAction } from "@/server/actions/teams";
 
 export function LeaveTeam({ lastMember }: { lastMember: boolean }) {
+  const t = useTranslations("team.leave");
   const router = useRouter();
   const [pending, start] = useTransition();
 
@@ -17,20 +19,16 @@ export function LeaveTeam({ lastMember }: { lastMember: boolean }) {
         toast.error(res.message);
         return;
       }
-      toast.success(res.data.dissolved ? "Team aufgelöst" : "Du hast das Team verlassen");
+      toast.success(res.data.dissolved ? t("dissolved") : t("left"));
       router.refresh();
     });
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-muted-foreground text-sm">
-        {lastMember
-          ? "Du bist das letzte Mitglied: Wenn du gehst, wird das Team aufgelöst und der Name wieder frei."
-          : "Deine Partnerin oder dein Partner bleibt im Team und kann jemand Neues einladen."}
-      </p>
+      <p className="text-muted-foreground text-sm">{lastMember ? t("lastMember") : t("otherStays")}</p>
       <HoldToConfirm onConfirm={leave} disabled={pending}>
-        {pending ? "Wird verlassen …" : "Gedrückt halten: Team verlassen"}
+        {pending ? t("leaving") : t("hold")}
       </HoldToConfirm>
     </div>
   );

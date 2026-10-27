@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { BASE_URL, E2E_ENV, PORT } from "./tests/e2e/support/env";
+import { BASE_URL, DE_STATE, E2E_ENV, PORT } from "./tests/e2e/support/env";
 
 const CI = !!process.env.CI;
 
@@ -26,6 +26,7 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     locale: "de-CH",
+    storageState: DE_STATE,
     timezoneId: "Europe/Zurich",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

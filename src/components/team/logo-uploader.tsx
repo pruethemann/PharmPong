@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { TeamAvatar } from "@/components/pp/team-avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export function LogoUploader({
   teamName: string;
   logoUrl: string | null;
 }) {
+  const t = useTranslations("team.logo");
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
@@ -34,11 +36,11 @@ export function LogoUploader({
     setError(undefined);
     if (!f) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) {
-      setError("Nur PNG, JPEG oder WebP.");
+      setError(t("onlyImages"));
       return;
     }
     if (f.size > MAX_BYTES) {
-      setError("Das Bild ist grösser als 1 MB.");
+      setError(t("tooLarge", { maxMb: MAX_BYTES / 1024 / 1024 }));
       return;
     }
     setFile(f);
@@ -63,7 +65,7 @@ export function LogoUploader({
         return;
       }
       reset();
-      toast.success("Logo gespeichert");
+      toast.success(t("saved"));
       router.refresh();
     });
   }
@@ -75,7 +77,7 @@ export function LogoUploader({
         toast.error(res.message);
         return;
       }
-      toast.success("Logo entfernt");
+      toast.success(t("removed"));
       router.refresh();
     });
   }
@@ -87,7 +89,7 @@ export function LogoUploader({
           // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
           <img
             src={preview}
-            alt="Vorschau des neuen Logos"
+            alt={t("previewAlt")}
             className="ring-primary size-28 rounded-2xl object-cover ring-2"
           />
         ) : (
@@ -95,10 +97,10 @@ export function LogoUploader({
         )}
         <div className="flex flex-col gap-2">
           <Label htmlFor="logo-file" className="text-base">
-            Teamlogo
+            {t("label")}
           </Label>
           <p id="logo-hint" className="text-muted-foreground text-sm">
-            PNG, JPEG oder WebP, max. 1 MB. Wird quadratisch zugeschnitten.
+            {t("hint", { maxMb: MAX_BYTES / 1024 / 1024 })}
           </p>
         </div>
       </div>
@@ -122,17 +124,17 @@ export function LogoUploader({
           <>
             <Button type="button" onClick={upload} disabled={pending}>
               <ImagePlus aria-hidden="true" />
-              {pending ? "Wird hochgeladen …" : "Logo hochladen"}
+              {pending ? t("uploading") : t("upload")}
             </Button>
             <Button type="button" variant="ghost" onClick={reset} disabled={pending}>
-              Abbrechen
+              {t("cancel")}
             </Button>
           </>
         )}
         {!file && logoUrl && (
           <Button type="button" variant="destructive" onClick={remove} disabled={pending}>
             <Trash2 aria-hidden="true" />
-            Logo entfernen
+            {t("remove")}
           </Button>
         )}
       </div>

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyRound, Loader2, LogOut, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { changePasswordAction, logoutAction, updateProfileAction } from "@/server/actions/auth";
 import { PASSWORD_MIN, changePasswordSchema, profileSchema } from "@/lib/validation/auth";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FormAlert, PasswordInput, applyFieldErrors, fieldAria } from "./form-bits";
 
 export function DisplayNameForm({ displayName }: { displayName: string }) {
+  const t = useTranslations("auth.profile");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -40,8 +42,8 @@ export function DisplayNameForm({ displayName }: { displayName: string }) {
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormAlert message={serverError} />
-      <FormAlert tone="success" message={saved ? "Name gespeichert." : null} />
-      <Field id="profile-name" label="Anzeigename" error={errors.displayName?.message}>
+      <FormAlert tone="success" message={saved ? t("nameSaved") : null} />
+      <Field id="profile-name" label={t("displayNameLabel")} error={errors.displayName?.message}>
         <Input
           {...fieldAria("profile-name", errors.displayName?.message)}
           autoComplete="nickname"
@@ -51,13 +53,15 @@ export function DisplayNameForm({ displayName }: { displayName: string }) {
       </Field>
       <Button type="submit" variant="outline" disabled={isSubmitting || !isDirty} className="self-start">
         {isSubmitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Save aria-hidden="true" />}
-        {isSubmitting ? "Wird gespeichert …" : "Name speichern"}
+        {isSubmitting ? t("saving") : t("saveName")}
       </Button>
     </form>
   );
 }
 
 export function ChangePasswordForm({ primary }: { primary: boolean }) {
+  const t = useTranslations("auth.profile");
+  const tErr = useTranslations("errors.specific");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -78,7 +82,7 @@ export function ChangePasswordForm({ primary }: { primary: boolean }) {
     const res = await changePasswordAction(values);
     if (!res.ok) {
       if (res.code === "INVALID_CREDENTIALS") {
-        setError("currentPassword", { type: "server", message: "Das aktuelle Passwort ist falsch." });
+        setError("currentPassword", { type: "server", message: tErr("currentPasswordWrong") });
       } else if (!applyFieldErrors(res.fieldErrors, ["currentPassword", "newPassword"] as const, setError)) {
         setServerError(res.message);
       }
@@ -86,7 +90,7 @@ export function ChangePasswordForm({ primary }: { primary: boolean }) {
     }
     reset();
     setSaved(true);
-    toast.success("Passwort geändert. Andere Geräte wurden abgemeldet.");
+    toast.success(t("passwordChanged"));
     if (primary) {
       // The forced-change gate is lifted now: reload so the shell and guards see it.
       router.replace("/");
@@ -97,11 +101,8 @@ export function ChangePasswordForm({ primary }: { primary: boolean }) {
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormAlert message={serverError} />
-      <FormAlert
-        tone="success"
-        message={saved ? "Passwort geändert. Andere Geräte wurden abgemeldet." : null}
-      />
-      <Field id="pw-current" label="Aktuelles Passwort" error={errors.currentPassword?.message}>
+      <FormAlert tone="success" message={saved ? t("passwordChanged") : null} />
+      <Field id="pw-current" label={t("currentPassword")} error={errors.currentPassword?.message}>
         <PasswordInput
           {...fieldAria("pw-current", errors.currentPassword?.message)}
           autoComplete="current-password"
@@ -110,8 +111,8 @@ export function ChangePasswordForm({ primary }: { primary: boolean }) {
       </Field>
       <Field
         id="pw-new"
-        label="Neues Passwort"
-        hint={`Mindestens ${PASSWORD_MIN} Zeichen.`}
+        label={t("newPassword")}
+        hint={t("passwordHint", { min: PASSWORD_MIN })}
         error={errors.newPassword?.message}
       >
         <PasswordInput
@@ -132,13 +133,14 @@ export function ChangePasswordForm({ primary }: { primary: boolean }) {
         ) : (
           <KeyRound aria-hidden="true" />
         )}
-        {isSubmitting ? "Wird gespeichert …" : "Passwort ändern"}
+        {isSubmitting ? t("saving") : t("changePasswordSubmit")}
       </Button>
     </form>
   );
 }
 
 export function LogoutButton() {
+  const t = useTranslations("auth.profile");
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
@@ -156,7 +158,7 @@ export function LogoutButton() {
       }
     >
       {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : <LogOut aria-hidden="true" />}
-      Abmelden
+      {t("logout")}
     </Button>
   );
 }

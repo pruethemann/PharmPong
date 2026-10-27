@@ -3,11 +3,13 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CircleCheck, CircleDashed } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { setReadyAction } from "@/server/actions/teams";
 
 export function ReadyToggle({ ready, disabled }: { ready: boolean; disabled?: boolean }) {
+  const t = useTranslations("team.ready");
   const router = useRouter();
   const [pending, start] = useTransition();
 
@@ -18,7 +20,7 @@ export function ReadyToggle({ ready, disabled }: { ready: boolean; disabled?: bo
         toast.error(res.message);
         return;
       }
-      toast.success(ready ? "Check-in zurückgenommen" : "Ihr seid eingecheckt!");
+      toast.success(ready ? t("checkInUndone") : t("checkedIn"));
       router.refresh();
     });
   }
@@ -34,7 +36,7 @@ export function ReadyToggle({ ready, disabled }: { ready: boolean; disabled?: bo
       className="w-full"
     >
       {ready ? <CircleCheck aria-hidden="true" /> : <CircleDashed aria-hidden="true" />}
-      {ready ? "Ich bin bereit" : "Wir sind bereit"}
+      {ready ? t("me") : t("we")}
     </Button>
   );
 }

@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CupSoda } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { getCurrentUser } from "@/server/auth/current";
 import { env } from "@/server/env";
 import { AuthCard } from "@/components/auth/auth-card";
 import { RegisterForm } from "@/components/auth/register-form";
 import { safeNext } from "@/components/auth/safe-next";
 
-export const metadata: Metadata = { title: "Registrieren" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("auth.register"))("metaTitle") };
+}
 
 export default async function RegisterPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const t = await getTranslations("auth.register");
   const sp = await searchParams;
   const raw = Array.isArray(sp.next) ? sp.next[0] : sp.next;
   const next = raw && safeNext(raw, "") ? raw : undefined;
@@ -23,13 +27,13 @@ export default async function RegisterPage({
 
   return (
     <AuthCard
-      kicker="Neue Probe anmelden"
-      title="Registrieren"
-      subtitle="Ein Konto, ein:e Partner:in, zehn Becher. Die Versuchsanordnung ist simpel, das Resultat hoffentlich signifikant."
+      kicker={t("kicker")}
+      title={t("title")}
+      subtitle={t("subtitle")}
       footer={
         <p className="text-muted-foreground flex items-start gap-2 text-sm">
           <CupSoda className="text-accent mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          Alkoholfreie Getränke sind ausdrücklich willkommen. Gezählt werden nur Becher, nicht Promille.
+          {t("footer")}
         </p>
       }
     >

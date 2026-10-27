@@ -107,5 +107,233 @@
     "mottoMax": "At most {mottoMax} characters.",
     "inviteCodeRequired": "Enter an invite code.",
     "inviteCodeTooLong": "That code be too long."
+  },
+  "auth": {
+    "showPassword": "Show the secret word",
+    "hidePassword": "Hide the secret word",
+    "login": {
+      "metaTitle": "Board the ship",
+      "kicker": "Welcome back, matey",
+      "title": "Sign in",
+      "subtitle": "Sign in quick, then back to the grog deck with ye, *hic*.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Boarding …",
+      "noAccount": "No pirate account yet?",
+      "registerLink": "Sign the ship's log",
+      "forgot": "Forgot yer password? The tournament officers can hand ye a reset link."
+    },
+    "register": {
+      "metaTitle": "Join the crew",
+      "kicker": "Sign up a fresh recruit",
+      "title": "Register",
+      "subtitle": "One account, one partner, ten tankards. The experiment be simple, the result hopefully significant, arrr.",
+      "footer": "Dry grog be welcome too. We count tankards, not how many sheets to the wind.",
+      "displayName": "Pirate name",
+      "displayNameHint": "This be how ye appear in yer crew and on the scoreboard.",
+      "email": "Email",
+      "emailHint": "Only for signin'. Never shown to the seven seas.",
+      "password": "Password",
+      "passwordHintRemaining": "At least {min} characters ({remaining} to go). A whole sentence works fine.",
+      "passwordHintOk": "Long enough. Well measured, *hic*!",
+      "eventCode": "Event code",
+      "eventCodeHint": "It be on the invitation or at the gangway.",
+      "submit": "Create account",
+      "submitting": "Creating account …",
+      "haveAccount": "Already aboard?",
+      "loginLink": "To the sign-in",
+      "eventCodeWrong": "Wrong event code, matey."
+    },
+    "reset": {
+      "metaTitle": "Reset yer password",
+      "kicker": "Account salvage",
+      "title": "New password",
+      "subtitle": "Pick a new password. The link works only once and be valid for 30 minutes.",
+      "newPassword": "New password",
+      "hint": "At least {min} characters.",
+      "submit": "Save password",
+      "submitting": "Saving …",
+      "done": "New password saved. All old sessions be sunk.",
+      "toLogin": "To the sign-in",
+      "linkUnusable": "This link be invalid, expired or already used. Ask the tournament officers for a new one.",
+      "linkInvalid": "This link be invalid."
+    },
+    "profile": {
+      "metaTitle": "Pirate profile",
+      "kicker": "Yer pirate papers",
+      "title": "Profile",
+      "mustChangeTitle": "New password required",
+      "mustChangeBody": "Yer account uses a temporary password. Set yer own now before ye carry on.",
+      "setPasswordTitle": "Set a password",
+      "displayNameTitle": "Pirate name",
+      "displayNameLabel": "Pirate name",
+      "nameSaved": "Name saved.",
+      "saveName": "Save name",
+      "saving": "Saving …",
+      "changePasswordTitle": "Change password",
+      "changePasswordNote": "After the change ye be signed out on all other devices.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "passwordHint": "At least {min} characters.",
+      "passwordChanged": "Password changed. Other devices be signed out.",
+      "changePasswordSubmit": "Change password",
+      "sessionTitle": "Voyage",
+      "logout": "Abandon ship"
+    }
+  },
+  "home": {
+    "preparingTitle": "The tournament be brewing, *hic*",
+    "preparingBody": "The tournament officers be mixing the potions. Come back soon.",
+    "register": "Join the crew",
+    "login": "Board the ship",
+    "forbidden": "Ye lack the permission for that page. Ye were sent back to the harbour."
+  },
+  "team": {
+    "metaTitle": "Me crew",
+    "kicker": "PharmaPong",
+    "title": "Me crew",
+    "lockedBanner": "Crews be locked. Changes only via the tournament officers.",
+    "signupSoonTitle": "Signin' opens soon",
+    "signupSoonBody": "The tournament officers open crew signin' shortly. Go grab yer lab partner, arrr!",
+    "noTeamTitle": "No crew",
+    "noTeamBody": "Ye be in no crew. Tell the tournament officers if that be a mistake.",
+    "profileAria": "Crew profile",
+    "membersTitle": "Crew members",
+    "membersAria": "Crew members",
+    "editTitle": "Edit profile",
+    "leaveTitle": "Leave crew",
+    "you": "(ye)",
+    "memberReady": "Ready",
+    "memberNotReady": "Not ready yet",
+    "freeSlot": "Free spot for yer partner",
+    "complete": "Crew complete",
+    "waitingForPartner": "Waitin' for a partner",
+    "ready": {
+      "me": "I be ready",
+      "we": "We be ready",
+      "checkedIn": "Ye be checked in!",
+      "checkInUndone": "Check-in withdrawn"
+    },
+    "create": {
+      "title": "Found a crew",
+      "subtitle": "Ye'll get an invite code for yer duo.",
+      "nameLabel": "Crew name",
+      "nameHint": "{min} to {max} characters",
+      "namePlaceholder": "e.g. The Pipette Pirates",
+      "mottoLabel": "Motto (optional)",
+      "mottoPlaceholder": "Precise down to the last tankard",
+      "submit": "Found crew",
+      "submitting": "Foundin' …",
+      "created": "Crew founded! Now invite yer partner."
+    },
+    "join": {
+      "title": "Join a crew",
+      "subtitle": "The code from yer partner.",
+      "codeLabel": "Invite code",
+      "codeHint": "{length} characters, e.g. {example}",
+      "submit": "Join crew",
+      "checking": "Checking …",
+      "joining": "Joinin' …",
+      "welcome": "Welcome aboard the crew!"
+    },
+    "invite": {
+      "title": "Invite yer partner",
+      "codeLabel": "Invite code",
+      "codeAria": "Invite code {code}",
+      "copy": "Copy link",
+      "share": "Share",
+      "copied": "Link copied",
+      "copyFailed": "Couldn't copy. Write the code down, matey.",
+      "shareText": "Join me PharmaPong crew! Code: {code}",
+      "rotate": "Generate new code",
+      "rotating": "Generating …",
+      "rotated": "New code generated. The old code be useless now."
+    },
+    "leave": {
+      "lastMember": "Ye be the last member: if ye leave, the crew be dissolved and the name be free again.",
+      "otherStays": "Yer partner stays in the crew and can invite someone new.",
+      "hold": "Hold to leave crew",
+      "leaving": "Leavin' …",
+      "dissolved": "Crew dissolved",
+      "left": "Ye left the crew"
+    },
+    "edit": {
+      "nameLabel": "Crew name",
+      "nameLockedHint": "After the crew lock, only the tournament officers can change it.",
+      "mottoLabel": "Motto",
+      "save": "Save changes",
+      "saving": "Saving …",
+      "saved": "Saved"
+    },
+    "logo": {
+      "label": "Crew flag",
+      "hint": "PNG, JPEG or WebP, max. {maxMb} MB. Cropped to a square.",
+      "previewAlt": "Preview of the new flag",
+      "upload": "Upload flag",
+      "uploading": "Uploading …",
+      "cancel": "Cancel",
+      "remove": "Remove flag",
+      "saved": "Flag saved",
+      "removed": "Flag removed",
+      "onlyImages": "PNG, JPEG or WebP only.",
+      "tooLarge": "The image be larger than {maxMb} MB."
+    }
+  },
+  "joinPage": {
+    "metaTitle": "Join crew",
+    "kicker": "Invitation",
+    "title": "Join crew",
+    "rateLimitedTitle": "Too many attempts",
+    "rateLimitedBody": "Too many invalid codes were tried from this network. Try again in {minutes} minutes.",
+    "notFoundTitle": "Invitation not found",
+    "notFoundBody": "This code be invalid or renewed. Ask yer crew for the current link.",
+    "toMyTeam": "To me crew",
+    "previewAria": "Crew preview",
+    "members": "{n}/2 pirates",
+    "code": "Code <c>{code}</c>",
+    "registrationClosed": "Signin' isn't open right now.",
+    "teamFull": "This crew be already full.",
+    "createAccount": "Create account and join",
+    "haveAccount": "I already have an account",
+    "alreadyInTeam": "Ye be already in the crew «{name}»."
+  },
+  "status": {
+    "match": {
+      "PENDING": "Open",
+      "READY": "Ready",
+      "ASSIGNED": "Deck assigned",
+      "IN_PROGRESS": "In progress",
+      "AWAITING_CONFIRMATION": "Awaiting confirmation",
+      "COMPLETED": "Finished",
+      "CANCELLED": "Cancelled",
+      "FORFEITED": "Walked the plank"
+    },
+    "tournament": {
+      "DRAFT": "Brewing",
+      "REGISTRATION_OPEN": "Signin' open",
+      "REGISTRATION_LOCKED": "Signin' closed",
+      "GROUP_STAGE": "Group stage",
+      "KNOCKOUT_STAGE": "Knockout stage",
+      "COMPLETED": "Tournament finished",
+      "CANCELLED": "Cancelled"
+    },
+    "endType": {
+      "REGULAR": "All tankards hit",
+      "TIME_LIMIT": "Time ran out",
+      "SHOOTOUT": "Shootout",
+      "FORFEIT": "Walked the plank"
+    },
+    "tableState": {
+      "AVAILABLE": "Free",
+      "RESERVED": "Reserved",
+      "IN_PROGRESS": "Game in progress",
+      "DISABLED": "Disabled"
+    },
+    "knockoutRound": {
+      "1": "Quarter-final",
+      "2": "Semi-final",
+      "3": "Final"
+    }
   }
 }

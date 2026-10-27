@@ -2,6 +2,7 @@
 
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function fieldAria(id: string, error?: string, hasHint = false) {
 
 /** Password input with a 48px show/hide toggle. Paste stays allowed. */
 export function PasswordInput({ className, ...props }: ComponentProps<"input">) {
+  const t = useTranslations("auth");
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative">
@@ -71,7 +73,7 @@ export function PasswordInput({ className, ...props }: ComponentProps<"input">) 
         variant="ghost"
         size="icon"
         className="absolute top-0 right-0 rounded-l-none"
-        aria-label={visible ? "Passwort verbergen" : "Passwort anzeigen"}
+        aria-label={visible ? t("hidePassword") : t("showPassword")}
         aria-pressed={visible}
         onClick={() => setVisible((v) => !v)}
       >

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ export function TeamEditForm({
   motto: string | null;
   nameEditable: boolean;
 }) {
+  const t = useTranslations("team.edit");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -47,7 +49,7 @@ export function TeamEditForm({
         return;
       }
       setErrors({});
-      toast.success("Gespeichert");
+      toast.success(t("saved"));
       router.refresh();
     });
   }
@@ -57,9 +59,9 @@ export function TeamEditForm({
     <form key={version} action={submit} className="flex flex-col gap-4" noValidate>
       <FormField
         id="edit-name"
-        label="Teamname"
+        label={t("nameLabel")}
         error={errors.name}
-        hint={nameEditable ? undefined : "Nach der Teamsperre nur via Turnierleitung änderbar."}
+        hint={nameEditable ? undefined : t("nameLockedHint")}
       >
         <Input
           id="edit-name"
@@ -73,7 +75,7 @@ export function TeamEditForm({
           aria-describedby={describedBy("edit-name", errors.name, !nameEditable)}
         />
       </FormField>
-      <FormField id="edit-motto" label="Motto" error={errors.motto}>
+      <FormField id="edit-motto" label={t("mottoLabel")} error={errors.motto}>
         <Textarea
           id="edit-motto"
           name="motto"
@@ -91,7 +93,7 @@ export function TeamEditForm({
         </p>
       )}
       <Button type="submit" variant="outline" disabled={pending} className="self-start">
-        {pending ? "Wird gespeichert …" : "Änderungen speichern"}
+        {pending ? t("saving") : t("save")}
       </Button>
     </form>
   );

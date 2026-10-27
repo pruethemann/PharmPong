@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { uniqueEmail } from "./support/auth";
 import { clearThrottles, scenario } from "./support/db";
-import { BASE_URL, storageStateFor } from "./support/env";
+import { BASE_URL, DE_STATE, storageStateFor } from "./support/env";
 
 test.describe.configure({ mode: "serial" });
 
@@ -21,7 +21,13 @@ async function register(page: Page, name: string, email: string) {
 async function newPhoneLikeContext(browser: Browser, page: Page) {
   // Same device settings as the current project, but no session.
   const viewport = page.viewportSize() ?? undefined;
-  return browser.newContext({ baseURL: BASE_URL, viewport, locale: "de-CH", timezoneId: "Europe/Zurich" });
+  return browser.newContext({
+    baseURL: BASE_URL,
+    viewport,
+    locale: "de-CH",
+    timezoneId: "Europe/Zurich",
+    storageState: DE_STATE,
+  });
 }
 
 test("register, found a team and let a partner join via the invite link", async ({

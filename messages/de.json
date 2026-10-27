@@ -107,5 +107,233 @@
     "mottoMax": "Höchstens {mottoMax} Zeichen.",
     "inviteCodeRequired": "Bitte gib einen Einladungscode ein.",
     "inviteCodeTooLong": "Code ist zu lang."
+  },
+  "auth": {
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "login": {
+      "metaTitle": "Anmelden",
+      "kicker": "Willkommen zurück",
+      "title": "Anmelden",
+      "subtitle": "Kurz einloggen, dann geht's zurück an den Labortisch.",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "submitting": "Wird angemeldet …",
+      "noAccount": "Noch kein Konto?",
+      "registerLink": "Jetzt registrieren",
+      "forgot": "Passwort vergessen? Die Turnierleitung kann dir einen Link zum Zurücksetzen geben."
+    },
+    "register": {
+      "metaTitle": "Registrieren",
+      "kicker": "Neue Probe anmelden",
+      "title": "Registrieren",
+      "subtitle": "Ein Konto, ein:e Partner:in, zehn Becher. Die Versuchsanordnung ist simpel, das Resultat hoffentlich signifikant.",
+      "footer": "Alkoholfreie Getränke sind ausdrücklich willkommen. Gezählt werden nur Becher, nicht Promille.",
+      "displayName": "Anzeigename",
+      "displayNameHint": "So erscheinst du im Team und auf der Anzeigetafel.",
+      "email": "E-Mail",
+      "emailHint": "Nur für die Anmeldung. Wird nie öffentlich angezeigt.",
+      "password": "Passwort",
+      "passwordHintRemaining": "Mindestens {min} Zeichen (noch {remaining}). Ein Satz funktioniert prima.",
+      "passwordHintOk": "Lang genug. Sauber dosiert!",
+      "eventCode": "Event-Code",
+      "eventCodeHint": "Steht auf der Einladung oder am Eingang.",
+      "submit": "Konto erstellen",
+      "submitting": "Konto wird erstellt …",
+      "haveAccount": "Schon registriert?",
+      "loginLink": "Zur Anmeldung",
+      "eventCodeWrong": "Der Event-Code stimmt nicht."
+    },
+    "reset": {
+      "metaTitle": "Passwort zurücksetzen",
+      "kicker": "Kontowiederherstellung",
+      "title": "Neues Passwort",
+      "subtitle": "Wähle ein neues Passwort. Der Link funktioniert nur einmal und ist 30 Minuten gültig.",
+      "newPassword": "Neues Passwort",
+      "hint": "Mindestens {min} Zeichen.",
+      "submit": "Passwort speichern",
+      "submitting": "Wird gespeichert …",
+      "done": "Neues Passwort gespeichert. Alle alten Sitzungen wurden beendet.",
+      "toLogin": "Zur Anmeldung",
+      "linkUnusable": "Dieser Link ist ungültig, abgelaufen oder wurde schon benutzt. Frag die Turnierleitung nach einem neuen.",
+      "linkInvalid": "Dieser Link ist ungültig."
+    },
+    "profile": {
+      "metaTitle": "Profil",
+      "kicker": "Dein Laborausweis",
+      "title": "Profil",
+      "mustChangeTitle": "Neues Passwort erforderlich",
+      "mustChangeBody": "Dein Konto verwendet ein vorläufiges Passwort. Bitte lege jetzt ein eigenes fest, bevor du weitermachst.",
+      "setPasswordTitle": "Passwort festlegen",
+      "displayNameTitle": "Anzeigename",
+      "displayNameLabel": "Anzeigename",
+      "nameSaved": "Name gespeichert.",
+      "saveName": "Name speichern",
+      "saving": "Wird gespeichert …",
+      "changePasswordTitle": "Passwort ändern",
+      "changePasswordNote": "Nach der Änderung wirst du auf allen anderen Geräten abgemeldet.",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "passwordHint": "Mindestens {min} Zeichen.",
+      "passwordChanged": "Passwort geändert. Andere Geräte wurden abgemeldet.",
+      "changePasswordSubmit": "Passwort ändern",
+      "sessionTitle": "Sitzung",
+      "logout": "Abmelden"
+    }
+  },
+  "home": {
+    "preparingTitle": "Das Turnier wird vorbereitet",
+    "preparingBody": "Die Turnierleitung mischt gerade die Reagenzien. Schau bald wieder vorbei.",
+    "register": "Registrieren",
+    "login": "Anmelden",
+    "forbidden": "Für diese Seite fehlen dir die Berechtigungen. Du wurdest zur Startseite weitergeleitet."
+  },
+  "team": {
+    "metaTitle": "Mein Team",
+    "kicker": "PharmaPong",
+    "title": "Mein Team",
+    "lockedBanner": "Teams sind gesperrt, Änderungen nur via Turnierleitung.",
+    "signupSoonTitle": "Anmeldung öffnet bald",
+    "signupSoonBody": "Die Turnierleitung schaltet die Teamanmeldung in Kürze frei. Schnapp dir schon mal deine Laborpartnerin oder deinen Laborpartner!",
+    "noTeamTitle": "Kein Team",
+    "noTeamBody": "Du bist in keinem Team. Melde dich bei der Turnierleitung, falls das ein Fehler ist.",
+    "profileAria": "Teamprofil",
+    "membersTitle": "Mitglieder",
+    "membersAria": "Mitglieder",
+    "editTitle": "Profil bearbeiten",
+    "leaveTitle": "Team verlassen",
+    "you": "(du)",
+    "memberReady": "Bereit",
+    "memberNotReady": "Noch nicht bereit",
+    "freeSlot": "Freier Platz für deine:n Partner:in",
+    "complete": "Vollständig",
+    "waitingForPartner": "Wartet auf Partner:in",
+    "ready": {
+      "me": "Ich bin bereit",
+      "we": "Wir sind bereit",
+      "checkedIn": "Ihr seid eingecheckt!",
+      "checkInUndone": "Check-in zurückgenommen"
+    },
+    "create": {
+      "title": "Team gründen",
+      "subtitle": "Du bekommst einen Einladungscode für dein Duo.",
+      "nameLabel": "Teamname",
+      "nameHint": "{min} bis {max} Zeichen",
+      "namePlaceholder": "z. B. Die Pipettenprofis",
+      "mottoLabel": "Motto (optional)",
+      "mottoPlaceholder": "Präzise bis zum letzten Becher",
+      "submit": "Team gründen",
+      "submitting": "Wird gegründet …",
+      "created": "Team gegründet! Jetzt Partner:in einladen."
+    },
+    "join": {
+      "title": "Team beitreten",
+      "subtitle": "Code von deiner Partnerin oder deinem Partner.",
+      "codeLabel": "Einladungscode",
+      "codeHint": "{length} Zeichen, z. B. {example}",
+      "submit": "Team beitreten",
+      "checking": "Wird geprüft …",
+      "joining": "Wird beigetreten …",
+      "welcome": "Willkommen im Team!"
+    },
+    "invite": {
+      "title": "Partner:in einladen",
+      "codeLabel": "Einladungscode",
+      "codeAria": "Einladungscode {code}",
+      "copy": "Link kopieren",
+      "share": "Teilen",
+      "copied": "Link kopiert",
+      "copyFailed": "Kopieren nicht möglich. Bitte Code abschreiben.",
+      "shareText": "Komm in mein PharmaPong-Team! Code: {code}",
+      "rotate": "Neuen Code erzeugen",
+      "rotating": "Wird erzeugt …",
+      "rotated": "Neuer Code erzeugt. Der alte Code gilt nicht mehr."
+    },
+    "leave": {
+      "lastMember": "Du bist das letzte Mitglied: Wenn du gehst, wird das Team aufgelöst und der Name wieder frei.",
+      "otherStays": "Deine Partnerin oder dein Partner bleibt im Team und kann jemand Neues einladen.",
+      "hold": "Gedrückt halten: Team verlassen",
+      "leaving": "Wird verlassen …",
+      "dissolved": "Team aufgelöst",
+      "left": "Du hast das Team verlassen"
+    },
+    "edit": {
+      "nameLabel": "Teamname",
+      "nameLockedHint": "Nach der Teamsperre nur via Turnierleitung änderbar.",
+      "mottoLabel": "Motto",
+      "save": "Änderungen speichern",
+      "saving": "Wird gespeichert …",
+      "saved": "Gespeichert"
+    },
+    "logo": {
+      "label": "Teamlogo",
+      "hint": "PNG, JPEG oder WebP, max. {maxMb} MB. Wird quadratisch zugeschnitten.",
+      "previewAlt": "Vorschau des neuen Logos",
+      "upload": "Logo hochladen",
+      "uploading": "Wird hochgeladen …",
+      "cancel": "Abbrechen",
+      "remove": "Logo entfernen",
+      "saved": "Logo gespeichert",
+      "removed": "Logo entfernt",
+      "onlyImages": "Nur PNG, JPEG oder WebP.",
+      "tooLarge": "Das Bild ist grösser als {maxMb} MB."
+    }
+  },
+  "joinPage": {
+    "metaTitle": "Team beitreten",
+    "kicker": "Einladung",
+    "title": "Team beitreten",
+    "rateLimitedTitle": "Zu viele Versuche",
+    "rateLimitedBody": "Von diesem Netzwerk wurden zu viele ungültige Codes geprüft. Bitte versuch es in {minutes} Minuten nochmals.",
+    "notFoundTitle": "Einladung nicht gefunden",
+    "notFoundBody": "Dieser Code ist ungültig oder wurde erneuert. Frag dein Team nach dem aktuellen Link.",
+    "toMyTeam": "Zu meinem Team",
+    "previewAria": "Teamvorschau",
+    "members": "{n}/2 Spieler:innen",
+    "code": "Code <c>{code}</c>",
+    "registrationClosed": "Die Anmeldung ist im Moment nicht offen.",
+    "teamFull": "Dieses Team ist bereits vollständig.",
+    "createAccount": "Konto erstellen und beitreten",
+    "haveAccount": "Ich habe schon ein Konto",
+    "alreadyInTeam": "Du bist bereits im Team «{name}»."
+  },
+  "status": {
+    "match": {
+      "PENDING": "Offen",
+      "READY": "Bereit",
+      "ASSIGNED": "Tisch zugewiesen",
+      "IN_PROGRESS": "Läuft",
+      "AWAITING_CONFIRMATION": "Wartet auf Bestätigung",
+      "COMPLETED": "Beendet",
+      "CANCELLED": "Abgesagt",
+      "FORFEITED": "Forfait"
+    },
+    "tournament": {
+      "DRAFT": "In Vorbereitung",
+      "REGISTRATION_OPEN": "Anmeldung offen",
+      "REGISTRATION_LOCKED": "Anmeldung geschlossen",
+      "GROUP_STAGE": "Gruppenphase",
+      "KNOCKOUT_STAGE": "K.-o.-Phase",
+      "COMPLETED": "Turnier beendet",
+      "CANCELLED": "Abgesagt"
+    },
+    "endType": {
+      "REGULAR": "Alle Becher getroffen",
+      "TIME_LIMIT": "Zeitablauf",
+      "SHOOTOUT": "Shootout",
+      "FORFEIT": "Forfait"
+    },
+    "tableState": {
+      "AVAILABLE": "Frei",
+      "RESERVED": "Reserviert",
+      "IN_PROGRESS": "Spiel läuft",
+      "DISABLED": "Gesperrt"
+    },
+    "knockoutRound": {
+      "1": "Viertelfinal",
+      "2": "Halbfinal",
+      "3": "Final"
+    }
   }
 }

@@ -17,6 +17,19 @@ export const E2E_ENV: Record<string, string> = {
   EVENT_CODE: "",
 };
 
+/** The app defaults to English; the suite asserts German copy, so every context carries pp_locale=de. */
+export const DE_LOCALE_COOKIE = {
+  name: "pp_locale",
+  value: "de",
+  domain: new URL(BASE_URL).hostname,
+  path: "/",
+  expires: -1,
+  httpOnly: false,
+  secure: false,
+  sameSite: "Lax" as const,
+};
+export const DE_STATE = { cookies: [DE_LOCALE_COOKIE], origins: [] };
+
 export const DEMO_PASSWORD = "pharmapong-demo";
 export const USERS = {
   admin: "dev-admin@pharmapong.test",

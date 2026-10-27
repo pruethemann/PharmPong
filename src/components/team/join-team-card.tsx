@@ -3,13 +3,18 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Ticket } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { joinTeamAction } from "@/server/actions/teams";
 import { FormField, describedBy } from "./form-field";
 
+const CODE_LENGTH = 8;
+const CODE_EXAMPLE = "K7Q2-M9XA";
+
 export function JoinTeamCard() {
+  const t = useTranslations("team.join");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [code, setCode] = useState("");
@@ -23,7 +28,7 @@ export function JoinTeamCard() {
         return;
       }
       setError(undefined);
-      toast.success("Willkommen im Team!");
+      toast.success(t("welcome"));
       router.refresh();
     });
   }
@@ -36,13 +41,18 @@ export function JoinTeamCard() {
         </span>
         <div>
           <h2 id="join-team-title" className="text-2xl leading-none">
-            Team beitreten
+            {t("title")}
           </h2>
-          <p className="text-muted-foreground text-sm">Code von deiner Partnerin oder deinem Partner.</p>
+          <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
         </div>
       </div>
       <form action={submit} className="flex flex-col gap-4" noValidate>
-        <FormField id="join-code" label="Einladungscode" error={error} hint="8 Zeichen, z. B. K7Q2-M9XA">
+        <FormField
+          id="join-code"
+          label={t("codeLabel")}
+          error={error}
+          hint={t("codeHint", { length: CODE_LENGTH, example: CODE_EXAMPLE })}
+        >
           <Input
             id="join-code"
             name="code"
@@ -61,7 +71,7 @@ export function JoinTeamCard() {
           />
         </FormField>
         <Button type="submit" size="lg" variant="accent" disabled={pending || code.trim().length === 0}>
-          {pending ? "Wird geprüft …" : "Team beitreten"}
+          {pending ? t("checking") : t("submit")}
         </Button>
       </form>
     </section>

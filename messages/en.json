@@ -107,5 +107,233 @@
     "mottoMax": "At most {mottoMax} characters.",
     "inviteCodeRequired": "Please enter an invite code.",
     "inviteCodeTooLong": "Code is too long."
+  },
+  "auth": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "login": {
+      "metaTitle": "Sign in",
+      "kicker": "Welcome back",
+      "title": "Sign in",
+      "subtitle": "Quick sign-in, then back to the lab bench.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in …",
+      "noAccount": "No account yet?",
+      "registerLink": "Register now",
+      "forgot": "Forgot your password? The tournament staff can give you a reset link."
+    },
+    "register": {
+      "metaTitle": "Register",
+      "kicker": "Sign up a new sample",
+      "title": "Register",
+      "subtitle": "One account, one partner, ten cups. The experimental setup is simple, the result hopefully significant.",
+      "footer": "Non-alcoholic drinks are explicitly welcome. We only count cups, not blood alcohol.",
+      "displayName": "Display name",
+      "displayNameHint": "This is how you appear in your team and on the scoreboard.",
+      "email": "Email",
+      "emailHint": "Only used to sign in. Never shown publicly.",
+      "password": "Password",
+      "passwordHintRemaining": "At least {min} characters ({remaining} to go). A sentence works great.",
+      "passwordHintOk": "Long enough. Nicely dosed!",
+      "eventCode": "Event code",
+      "eventCodeHint": "It's on the invitation or at the entrance.",
+      "submit": "Create account",
+      "submitting": "Creating account …",
+      "haveAccount": "Already registered?",
+      "loginLink": "Go to sign in",
+      "eventCodeWrong": "The event code is wrong."
+    },
+    "reset": {
+      "metaTitle": "Reset password",
+      "kicker": "Account recovery",
+      "title": "New password",
+      "subtitle": "Choose a new password. The link only works once and is valid for 30 minutes.",
+      "newPassword": "New password",
+      "hint": "At least {min} characters.",
+      "submit": "Save password",
+      "submitting": "Saving …",
+      "done": "New password saved. All old sessions have been ended.",
+      "toLogin": "Go to sign in",
+      "linkUnusable": "This link is invalid, expired or has already been used. Ask the tournament staff for a new one.",
+      "linkInvalid": "This link is invalid."
+    },
+    "profile": {
+      "metaTitle": "Profile",
+      "kicker": "Your lab ID",
+      "title": "Profile",
+      "mustChangeTitle": "New password required",
+      "mustChangeBody": "Your account uses a temporary password. Please set your own now before you continue.",
+      "setPasswordTitle": "Set a password",
+      "displayNameTitle": "Display name",
+      "displayNameLabel": "Display name",
+      "nameSaved": "Name saved.",
+      "saveName": "Save name",
+      "saving": "Saving …",
+      "changePasswordTitle": "Change password",
+      "changePasswordNote": "After the change you will be signed out on all other devices.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "passwordHint": "At least {min} characters.",
+      "passwordChanged": "Password changed. Other devices have been signed out.",
+      "changePasswordSubmit": "Change password",
+      "sessionTitle": "Session",
+      "logout": "Sign out"
+    }
+  },
+  "home": {
+    "preparingTitle": "The tournament is being prepared",
+    "preparingBody": "The tournament staff are mixing the reagents. Check back soon.",
+    "register": "Register",
+    "login": "Sign in",
+    "forbidden": "You don't have permission to view that page. You were redirected to the home page."
+  },
+  "team": {
+    "metaTitle": "My team",
+    "kicker": "PharmaPong",
+    "title": "My team",
+    "lockedBanner": "Teams are locked. Changes only via the tournament staff.",
+    "signupSoonTitle": "Registration opens soon",
+    "signupSoonBody": "The tournament staff will open team registration shortly. Go grab your lab partner!",
+    "noTeamTitle": "No team",
+    "noTeamBody": "You're not in a team. Contact the tournament staff if this is a mistake.",
+    "profileAria": "Team profile",
+    "membersTitle": "Members",
+    "membersAria": "Members",
+    "editTitle": "Edit profile",
+    "leaveTitle": "Leave team",
+    "you": "(you)",
+    "memberReady": "Ready",
+    "memberNotReady": "Not ready yet",
+    "freeSlot": "Free spot for your partner",
+    "complete": "Complete",
+    "waitingForPartner": "Waiting for partner",
+    "ready": {
+      "me": "I'm ready",
+      "we": "We're ready",
+      "checkedIn": "You're checked in!",
+      "checkInUndone": "Check-in withdrawn"
+    },
+    "create": {
+      "title": "Create a team",
+      "subtitle": "You'll get an invite code for your duo.",
+      "nameLabel": "Team name",
+      "nameHint": "{min} to {max} characters",
+      "namePlaceholder": "e.g. The Pipette Pros",
+      "mottoLabel": "Motto (optional)",
+      "mottoPlaceholder": "Precise down to the last cup",
+      "submit": "Create team",
+      "submitting": "Creating …",
+      "created": "Team created! Now invite your partner."
+    },
+    "join": {
+      "title": "Join a team",
+      "subtitle": "Code from your partner.",
+      "codeLabel": "Invite code",
+      "codeHint": "{length} characters, e.g. {example}",
+      "submit": "Join team",
+      "checking": "Checking …",
+      "joining": "Joining …",
+      "welcome": "Welcome to the team!"
+    },
+    "invite": {
+      "title": "Invite your partner",
+      "codeLabel": "Invite code",
+      "codeAria": "Invite code {code}",
+      "copy": "Copy link",
+      "share": "Share",
+      "copied": "Link copied",
+      "copyFailed": "Couldn't copy. Please write the code down.",
+      "shareText": "Join my PharmaPong team! Code: {code}",
+      "rotate": "Generate new code",
+      "rotating": "Generating …",
+      "rotated": "New code generated. The old code no longer works."
+    },
+    "leave": {
+      "lastMember": "You're the last member: if you leave, the team is dissolved and the name becomes free again.",
+      "otherStays": "Your partner stays in the team and can invite someone new.",
+      "hold": "Hold to leave team",
+      "leaving": "Leaving …",
+      "dissolved": "Team dissolved",
+      "left": "You left the team"
+    },
+    "edit": {
+      "nameLabel": "Team name",
+      "nameLockedHint": "After the team lock, only the tournament staff can change it.",
+      "mottoLabel": "Motto",
+      "save": "Save changes",
+      "saving": "Saving …",
+      "saved": "Saved"
+    },
+    "logo": {
+      "label": "Team logo",
+      "hint": "PNG, JPEG or WebP, max. {maxMb} MB. Cropped to a square.",
+      "previewAlt": "Preview of the new logo",
+      "upload": "Upload logo",
+      "uploading": "Uploading …",
+      "cancel": "Cancel",
+      "remove": "Remove logo",
+      "saved": "Logo saved",
+      "removed": "Logo removed",
+      "onlyImages": "PNG, JPEG or WebP only.",
+      "tooLarge": "The image is larger than {maxMb} MB."
+    }
+  },
+  "joinPage": {
+    "metaTitle": "Join team",
+    "kicker": "Invitation",
+    "title": "Join team",
+    "rateLimitedTitle": "Too many attempts",
+    "rateLimitedBody": "Too many invalid codes were checked from this network. Please try again in {minutes} minutes.",
+    "notFoundTitle": "Invitation not found",
+    "notFoundBody": "This code is invalid or has been renewed. Ask your team for the current link.",
+    "toMyTeam": "To my team",
+    "previewAria": "Team preview",
+    "members": "{n}/2 players",
+    "code": "Code <c>{code}</c>",
+    "registrationClosed": "Registration isn't open right now.",
+    "teamFull": "This team is already full.",
+    "createAccount": "Create account and join",
+    "haveAccount": "I already have an account",
+    "alreadyInTeam": "You're already in the team «{name}»."
+  },
+  "status": {
+    "match": {
+      "PENDING": "Open",
+      "READY": "Ready",
+      "ASSIGNED": "Table assigned",
+      "IN_PROGRESS": "In progress",
+      "AWAITING_CONFIRMATION": "Awaiting confirmation",
+      "COMPLETED": "Finished",
+      "CANCELLED": "Cancelled",
+      "FORFEITED": "Forfeit"
+    },
+    "tournament": {
+      "DRAFT": "In preparation",
+      "REGISTRATION_OPEN": "Registration open",
+      "REGISTRATION_LOCKED": "Registration closed",
+      "GROUP_STAGE": "Group stage",
+      "KNOCKOUT_STAGE": "Knockout stage",
+      "COMPLETED": "Tournament finished",
+      "CANCELLED": "Cancelled"
+    },
+    "endType": {
+      "REGULAR": "All cups hit",
+      "TIME_LIMIT": "Time limit",
+      "SHOOTOUT": "Shootout",
+      "FORFEIT": "Forfeit"
+    },
+    "tableState": {
+      "AVAILABLE": "Free",
+      "RESERVED": "Reserved",
+      "IN_PROGRESS": "Game in progress",
+      "DISABLED": "Disabled"
+    },
+    "knockoutRound": {
+      "1": "Quarter-final",
+      "2": "Semi-final",
+      "3": "Final"
+    }
   }
 }

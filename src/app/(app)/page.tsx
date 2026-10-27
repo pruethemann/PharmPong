@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { FlaskConical, LogIn, ShieldAlert, UserPlus } from "lucide-react";
 import { Logo } from "@/components/pp/logo";
 import { EmptyState } from "@/components/pp/section";
@@ -11,14 +12,15 @@ import { getActiveGameMode } from "@/server/services/current-mode";
 
 export const dynamic = "force-dynamic";
 
-function ForbiddenNotice() {
+async function ForbiddenNotice() {
+  const t = await getTranslations("home");
   return (
     <div
       role="alert"
       className="border-destructive/50 bg-destructive/10 flex items-start gap-3 rounded-2xl border p-4 text-base"
     >
       <ShieldAlert className="text-destructive mt-0.5 size-5 shrink-0" aria-hidden="true" />
-      <p>Für diese Seite fehlen dir die Berechtigungen. Du wurdest zur Startseite weitergeleitet.</p>
+      <p>{t("forbidden")}</p>
     </div>
   );
 }
@@ -42,21 +44,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
   const live = await loadLiveInitial();
   if (live.mode === "none") {
+    const t = await getTranslations("home");
     return (
       <>
         {forbidden && <ForbiddenNotice />}
         <div className="flex justify-center pt-6">
           <Logo size="xl" />
         </div>
-        <EmptyState icon={<FlaskConical />} title="Das Turnier wird vorbereitet">
-          <p>Die Turnierleitung mischt gerade die Reagenzien. Schau bald wieder vorbei.</p>
+        <EmptyState icon={<FlaskConical />} title={t("preparingTitle")}>
+          <p>{t("preparingBody")}</p>
           {!live.loggedIn && (
             <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
               <Link href="/register" className={buttonVariants({ size: "lg" })}>
-                <UserPlus aria-hidden="true" /> Registrieren
+                <UserPlus aria-hidden="true" /> {t("register")}
               </Link>
               <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })}>
-                <LogIn aria-hidden="true" /> Anmelden
+                <LogIn aria-hidden="true" /> {t("login")}
               </Link>
             </div>
           )}

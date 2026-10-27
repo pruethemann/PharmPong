@@ -3,6 +3,7 @@
 import { useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, RefreshCw, Share2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { rotateInviteCodeAction } from "@/server/actions/teams";
@@ -19,6 +20,7 @@ export function InvitePanel({
   appUrl: string;
   canRotate: boolean;
 }) {
+  const t = useTranslations("team.invite");
   const router = useRouter();
   const [pending, start] = useTransition();
   // navigator.share only exists in (some) browsers; false during SSR avoids hydration mismatch.
@@ -32,9 +34,9 @@ export function InvitePanel({
   async function copy() {
     try {
       await navigator.clipboard.writeText(link);
-      toast.success("Link kopiert");
+      toast.success(t("copied"));
     } catch {
-      toast.error("Kopieren nicht möglich. Bitte Code abschreiben.");
+      toast.error(t("copyFailed"));
     }
   }
 
@@ -42,7 +44,7 @@ export function InvitePanel({
     try {
       await navigator.share({
         title: "PharmaPong",
-        text: `Komm in mein PharmaPong-Team! Code: ${formatInviteCode(code)}`,
+        text: t("shareText", { code: formatInviteCode(code) }),
         url: link,
       });
     } catch {
@@ -57,7 +59,7 @@ export function InvitePanel({
         toast.error(res.message);
         return;
       }
-      toast.success("Neuer Code erzeugt. Der alte Code gilt nicht mehr.");
+      toast.success(t("rotated"));
       router.refresh();
     });
   }
@@ -65,12 +67,12 @@ export function InvitePanel({
   return (
     <section aria-labelledby="invite-title" className="bg-card flex flex-col gap-4 rounded-2xl border p-5">
       <h2 id="invite-title" className="text-2xl leading-none">
-        Partner:in einladen
+        {t("title")}
       </h2>
       <div className="bg-muted/60 flex flex-col items-center gap-1 rounded-xl p-4">
-        <span className="text-muted-foreground text-sm">Einladungscode</span>
+        <span className="text-muted-foreground text-sm">{t("codeLabel")}</span>
         <output
-          aria-label={`Einladungscode ${code.split("").join(" ")}`}
+          aria-label={t("codeAria", { code: code.split("").join(" ") })}
           className="font-display tabular text-primary text-5xl tracking-[0.15em] select-all sm:text-6xl"
         >
           {formatInviteCode(code)}
@@ -79,12 +81,12 @@ export function InvitePanel({
       <div className="grid gap-3 sm:grid-cols-2">
         <Button type="button" size="lg" onClick={copy}>
           <Copy aria-hidden="true" />
-          Link kopieren
+          {t("copy")}
         </Button>
         {canShare && (
           <Button type="button" size="lg" variant="outline" onClick={share}>
             <Share2 aria-hidden="true" />
-            Teilen
+            {t("share")}
           </Button>
         )}
       </div>
@@ -92,7 +94,7 @@ export function InvitePanel({
       {canRotate && (
         <Button type="button" variant="ghost" onClick={rotate} disabled={pending} className="self-start">
           <RefreshCw aria-hidden="true" className={pending ? "animate-spin" : undefined} />
-          {pending ? "Wird erzeugt …" : "Neuen Code erzeugen"}
+          {pending ? t("rotating") : t("rotate")}
         </Button>
       )}
     </section>

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { Crown, Gavel, ShieldAlert, UserRound, type LucideIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { requirePageUser } from "@/server/auth/current";
-import { roleLabel, type RoleKey } from "@/lib/i18n/de";
+import type { RoleKey } from "@/lib/i18n/de";
 import { PageTitle, Section } from "@/components/pp/section";
 import { ChangePasswordForm, DisplayNameForm, LogoutButton } from "@/components/auth/profile-forms";
 
-export const metadata: Metadata = { title: "Profil" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("auth.profile"))("metaTitle") };
+}
 
 const ROLE_ICON: Record<RoleKey, LucideIcon> = { PLAYER: UserRound, REFEREE: Gavel, ADMIN: Crown };
 
@@ -14,6 +17,8 @@ export default async function ProfilePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const t = await getTranslations("auth.profile");
+  const tRoles = await getTranslations("roles");
   const user = await requirePageUser("PLAYER", "/profile");
   const sp = await searchParams;
   const forced = user.mustChangePassword;
@@ -22,7 +27,7 @@ export default async function ProfilePage({
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-8">
-      <PageTitle kicker="Dein Laborausweis" title="Profil" />
+      <PageTitle kicker={t("kicker")} title={t("title")} />
 
       {showBanner && (
         <div
@@ -31,11 +36,8 @@ export default async function ProfilePage({
         >
           <ShieldAlert className="text-warning mt-0.5 size-6 shrink-0" aria-hidden="true" />
           <div className="flex flex-col gap-1">
-            <p className="font-semibold">Neues Passwort erforderlich</p>
-            <p className="text-muted-foreground text-sm">
-              Dein Konto verwendet ein vorläufiges Passwort. Bitte lege jetzt ein eigenes fest, bevor du
-              weitermachst.
-            </p>
+            <p className="font-semibold">{t("mustChangeTitle")}</p>
+            <p className="text-muted-foreground text-sm">{t("mustChangeBody")}</p>
           </div>
         </div>
       )}
@@ -50,35 +52,33 @@ export default async function ProfilePage({
         </div>
         <span className="border-primary/40 text-primary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold">
           <RoleIcon className="size-4" aria-hidden="true" />
-          {roleLabel[user.role]}
+          {tRoles(user.role)}
         </span>
       </div>
 
       {forced ? (
-        <Section title="Passwort festlegen">
+        <Section title={t("setPasswordTitle")}>
           <div className="bg-card rounded-2xl border p-5">
             <ChangePasswordForm primary />
           </div>
         </Section>
       ) : (
         <>
-          <Section title="Anzeigename">
+          <Section title={t("displayNameTitle")}>
             <div className="bg-card rounded-2xl border p-5">
               <DisplayNameForm displayName={user.displayName} />
             </div>
           </Section>
-          <Section title="Passwort ändern">
+          <Section title={t("changePasswordTitle")}>
             <div className="bg-card rounded-2xl border p-5">
-              <p className="text-muted-foreground mb-4 text-sm">
-                Nach der Änderung wirst du auf allen anderen Geräten abgemeldet.
-              </p>
+              <p className="text-muted-foreground mb-4 text-sm">{t("changePasswordNote")}</p>
               <ChangePasswordForm primary={false} />
             </div>
           </Section>
         </>
       )}
 
-      <Section title="Sitzung">
+      <Section title={t("sessionTitle")}>
         <LogoutButton />
       </Section>
     </div>

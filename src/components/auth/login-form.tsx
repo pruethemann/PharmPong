@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { loginAction } from "@/server/actions/auth";
 import { loginSchema } from "@/lib/validation/auth";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Field, FormAlert, PasswordInput, applyFieldErrors, fieldAria } from "./
 import { safeNext } from "./safe-next";
 
 export function LoginForm({ next }: { next?: string }) {
+  const t = useTranslations("auth.login");
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -43,7 +45,7 @@ export function LoginForm({ next }: { next?: string }) {
       className="flex flex-col gap-5"
     >
       <FormAlert message={serverError} />
-      <Field id="login-email" label="E-Mail" error={errors.email?.message}>
+      <Field id="login-email" label={t("email")} error={errors.email?.message}>
         <Input
           {...fieldAria("login-email", errors.email?.message)}
           type="email"
@@ -54,7 +56,7 @@ export function LoginForm({ next }: { next?: string }) {
           {...register("email")}
         />
       </Field>
-      <Field id="login-password" label="Passwort" error={errors.password?.message}>
+      <Field id="login-password" label={t("password")} error={errors.password?.message}>
         <PasswordInput
           {...fieldAria("login-password", errors.password?.message)}
           autoComplete="current-password"
@@ -64,26 +66,24 @@ export function LoginForm({ next }: { next?: string }) {
       <Button type="submit" size="lg" disabled={busy} className="w-full">
         {busy ? (
           <>
-            <Loader2 className="animate-spin" aria-hidden="true" /> Wird angemeldet …
+            <Loader2 className="animate-spin" aria-hidden="true" /> {t("submitting")}
           </>
         ) : (
           <>
-            <LogIn aria-hidden="true" /> Anmelden
+            <LogIn aria-hidden="true" /> {t("submit")}
           </>
         )}
       </Button>
       <p className="text-muted-foreground text-center">
-        Noch kein Konto?{" "}
+        {t("noAccount")}{" "}
         <Link
           href={next ? `/register?next=${encodeURIComponent(safeNext(next))}` : "/register"}
           className="text-primary inline-flex min-h-12 items-center font-semibold underline-offset-4 hover:underline"
         >
-          Jetzt registrieren
+          {t("registerLink")}
         </Link>
       </p>
-      <p className="text-muted-foreground text-center text-sm">
-        Passwort vergessen? Die Turnierleitung kann dir einen Link zum Zurücksetzen geben.
-      </p>
+      <p className="text-muted-foreground text-center text-sm">{t("forgot")}</p>
     </form>
   );
 }

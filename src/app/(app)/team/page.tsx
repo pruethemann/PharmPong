@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CalendarClock, Lock } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { EmptyState, PageTitle, Section } from "@/components/pp/section";
 import { TeamAvatar } from "@/components/pp/team-avatar";
 import { CreateTeamCard } from "@/components/team/create-team-card";
@@ -21,21 +22,25 @@ import {
   isRosterLocked,
 } from "@/server/services/teams";
 
-export const metadata: Metadata = { title: "Mein Team" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("team"))("metaTitle") };
+}
 
-function LockedBanner() {
+async function LockedBanner() {
+  const t = await getTranslations("team");
   return (
     <div
       role="status"
       className="border-warning/50 bg-warning/10 text-warning flex items-start gap-3 rounded-2xl border p-4"
     >
       <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-      <p className="font-semibold">Teams sind gesperrt, Änderungen nur via Turnierleitung.</p>
+      <p className="font-semibold">{t("lockedBanner")}</p>
     </div>
   );
 }
 
 export default async function TeamPage() {
+  const t = await getTranslations("team");
   const user = await requirePageUser("PLAYER", "/team");
   const tournament = await getTournamentStatus();
   const team = tournament ? await getMyTeam(user.id, { tournamentId: tournament.id }) : null;
@@ -43,10 +48,9 @@ export default async function TeamPage() {
   if (!tournament || (tournament.status === "DRAFT" && !team)) {
     return (
       <>
-        <PageTitle kicker="PharmaPong" title="Mein Team" />
-        <EmptyState icon={<CalendarClock />} title="Anmeldung öffnet bald">
-          Die Turnierleitung schaltet die Teamanmeldung in Kürze frei. Schnapp dir schon mal deine
-          Laborpartnerin oder deinen Laborpartner!
+        <PageTitle kicker={t("kicker")} title={t("title")} />
+        <EmptyState icon={<CalendarClock />} title={t("signupSoonTitle")}>
+          {t("signupSoonBody")}
         </EmptyState>
       </>
     );
@@ -59,13 +63,11 @@ export default async function TeamPage() {
   if (!team) {
     return (
       <>
-        <PageTitle kicker="PharmaPong" title="Mein Team" />
+        <PageTitle kicker={t("kicker")} title={t("title")} />
         {locked ? (
           <>
             <LockedBanner />
-            <EmptyState title="Kein Team">
-              Du bist in keinem Team. Melde dich bei der Turnierleitung, falls das ein Fehler ist.
-            </EmptyState>
+            <EmptyState title={t("noTeamTitle")}>{t("noTeamBody")}</EmptyState>
           </>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
@@ -82,11 +84,11 @@ export default async function TeamPage() {
 
   return (
     <>
-      <PageTitle kicker="Mein Team" title={team.name} />
+      <PageTitle kicker={t("title")} title={team.name} />
       {locked && <LockedBanner />}
 
       <section
-        aria-label="Teamprofil"
+        aria-label={t("profileAria")}
         className="bg-card flex flex-col items-center gap-4 rounded-2xl border p-5 text-center sm:flex-row sm:text-left"
       >
         <TeamAvatar name={team.name} logoUrl={team.logoUrl} size="xl" />
@@ -97,7 +99,7 @@ export default async function TeamPage() {
         </div>
       </section>
 
-      <Section title="Mitglieder">
+      <Section title={t("membersTitle")}>
         <MemberList members={team.members} meId={user.id} />
         {(open || status === "REGISTRATION_LOCKED") && me && <ReadyToggle ready={me.isReady} />}
       </Section>
@@ -105,7 +107,7 @@ export default async function TeamPage() {
       {open && <InvitePanel code={team.inviteCode} appUrl={appUrl} canRotate />}
 
       {canEditProfile(status) && (
-        <Section title="Profil bearbeiten">
+        <Section title={t("editTitle")}>
           <div className="bg-card flex flex-col gap-6 rounded-2xl border p-5">
             <TeamEditForm
               teamId={team.id}
@@ -120,7 +122,7 @@ export default async function TeamPage() {
       )}
 
       {open && (
-        <Section title="Team verlassen">
+        <Section title={t("leaveTitle")}>
           <LeaveTeam lastMember={team.members.length === 1} />
         </Section>
       )}
