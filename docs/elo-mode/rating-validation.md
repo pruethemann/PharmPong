@@ -295,7 +295,7 @@ DATABASE_URL=postgresql://…/scratch pnpm simulate:elo --fresh
 
 <!-- BEGIN GENERATED: pnpm simulate:elo -->
 
-_Generated 2026-10-26 11:39 (Europe/Zurich) with seed 7: 24 players, two tables, real services and database._
+_Generated 2026-10-26 13:01 (Europe/Zurich) with seed 7: 24 players, two tables, real services and database._
 
 | Check                                    | Result                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
