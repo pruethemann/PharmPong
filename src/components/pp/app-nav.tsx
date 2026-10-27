@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   BookOpen,
   Gavel,
@@ -17,34 +18,36 @@ import {
 import type { RoleKey } from "@/lib/i18n/de";
 import { cn } from "@/lib/utils";
 
-type Item = { href: string; label: string; icon: LucideIcon };
+type NavKey =
+  "home" | "play" | "rankings" | "profile" | "admin" | "referee" | "rules" | "tournament" | "team";
+type Item = { href: string; label: NavKey; icon: LucideIcon };
 
 export type GameModeKey = "COMPETITIVE" | "ELO";
 
-/** Elo Mode: Start, Spielen, Rangliste, Profil and one role-specific item (max. 5). */
+/** Elo Mode: Home, Play, Rankings, Profile and one role-specific item (max. 5). */
 function eloNavItems(role: RoleKey | null): Item[] {
   const items: Item[] = [
-    { href: "/", label: "Start", icon: Home },
-    { href: "/elo/play", label: "Spielen", icon: Swords },
-    { href: "/elo/rankings", label: "Rangliste", icon: Medal },
-    { href: "/elo/players/me", label: "Profil", icon: UserRound },
+    { href: "/", label: "home", icon: Home },
+    { href: "/elo/play", label: "play", icon: Swords },
+    { href: "/elo/rankings", label: "rankings", icon: Medal },
+    { href: "/elo/players/me", label: "profile", icon: UserRound },
   ];
-  if (role === "ADMIN") items.push({ href: "/admin", label: "Admin", icon: Settings2 });
-  else if (role === "REFEREE") items.push({ href: "/elo/referee", label: "Schiri", icon: Gavel });
-  else items.push({ href: "/rules", label: "Regeln", icon: BookOpen });
+  if (role === "ADMIN") items.push({ href: "/admin", label: "admin", icon: Settings2 });
+  else if (role === "REFEREE") items.push({ href: "/elo/referee", label: "referee", icon: Gavel });
+  else items.push({ href: "/rules", label: "rules", icon: BookOpen });
   return items;
 }
 
 export function navItems(role: RoleKey | null, mode: GameModeKey = "COMPETITIVE"): Item[] {
   if (mode === "ELO") return eloNavItems(role);
   const items: Item[] = [
-    { href: "/", label: "Start", icon: Home },
-    { href: "/tournament", label: "Turnier", icon: Trophy },
+    { href: "/", label: "home", icon: Home },
+    { href: "/tournament", label: "tournament", icon: Trophy },
   ];
-  if (role === "ADMIN") items.push({ href: "/admin", label: "Admin", icon: Settings2 });
-  if (role === "REFEREE" || role === "ADMIN") items.push({ href: "/referee", label: "Schiri", icon: Gavel });
-  if (role !== "ADMIN") items.push({ href: "/team", label: "Team", icon: Users });
-  items.push({ href: "/rules", label: "Regeln", icon: BookOpen });
+  if (role === "ADMIN") items.push({ href: "/admin", label: "admin", icon: Settings2 });
+  if (role === "REFEREE" || role === "ADMIN") items.push({ href: "/referee", label: "referee", icon: Gavel });
+  if (role !== "ADMIN") items.push({ href: "/team", label: "team", icon: Users });
+  items.push({ href: "/rules", label: "rules", icon: BookOpen });
   return items.slice(0, 5);
 }
 
@@ -54,10 +57,12 @@ function isActive(pathname: string, href: string) {
 
 export function BottomNav({ role, mode }: { role: RoleKey | null; mode?: GameModeKey }) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const tShell = useTranslations("shell");
   const items = navItems(role, mode);
   return (
     <nav
-      aria-label="Hauptnavigation"
+      aria-label={tShell("mainNav")}
       className="bg-background/95 safe-bottom fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur md:hidden"
     >
       <ul
@@ -77,7 +82,7 @@ export function BottomNav({ role, mode }: { role: RoleKey | null; mode?: GameMod
                 )}
               >
                 <Icon className="size-6" aria-hidden="true" />
-                {label}
+                {t(label)}
               </Link>
             </li>
           );
@@ -89,8 +94,10 @@ export function BottomNav({ role, mode }: { role: RoleKey | null; mode?: GameMod
 
 export function TopNav({ role, mode }: { role: RoleKey | null; mode?: GameModeKey }) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const tShell = useTranslations("shell");
   return (
-    <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
+    <nav aria-label={tShell("mainNav")} className="hidden items-center gap-1 md:flex">
       {navItems(role, mode).map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
@@ -106,7 +113,7 @@ export function TopNav({ role, mode }: { role: RoleKey | null; mode?: GameModeKe
             )}
           >
             <Icon className="size-5" aria-hidden="true" />
-            {label}
+            {t(label)}
           </Link>
         );
       })}

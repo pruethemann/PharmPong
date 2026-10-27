@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "description": "The beer pong tournament of the Pharmazentrum at the University of Basel."
+  },
+  "language": {
+    "label": "Language"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "homeAria": "PharmaPong home",
+    "mainNav": "Main navigation",
+    "userMenu": "User menu",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "profile": "Profile"
+  },
+  "nav": {
+    "home": "Home",
+    "play": "Play",
+    "rankings": "Rankings",
+    "profile": "Profile",
+    "admin": "Admin",
+    "referee": "Referee",
+    "rules": "Rules",
+    "tournament": "Tournament",
+    "team": "Team"
+  },
+  "roles": {
+    "PLAYER": "Player",
+    "REFEREE": "Referee",
+    "ADMIN": "Admin"
+  }
+}

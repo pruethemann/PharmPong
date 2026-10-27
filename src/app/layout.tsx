@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { localeTags } from "@/i18n/config";
+import { getAppLocale } from "@/i18n/server";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -18,11 +22,14 @@ const display = Barlow_Condensed({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: { default: "PharmaPong", template: "%s · PharmaPong" },
-  description: "Das Beer-Pong-Turnier des Pharmazentrums der Universität Basel.",
-  applicationName: "PharmaPong",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: { default: "PharmaPong", template: "%s · PharmaPong" },
+    description: t("description"),
+    applicationName: "PharmaPong",
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0A0F1C",
@@ -31,11 +38,17 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getAppLocale();
   return (
-    <html lang="de-CH" className={`dark ${body.variable} ${display.variable} h-full antialiased`}>
+    <html
+      lang={localeTags[locale].lang}
+      className={`dark ${body.variable} ${display.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">
-        <TooltipProvider>{children}</TooltipProvider>
+        <NextIntlClientProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </NextIntlClientProvider>
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "description": "Das Beer-Pong-Turnier des Pharmazentrums der Universität Basel."
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "shell": {
+    "skipToContent": "Zum Inhalt springen",
+    "homeAria": "PharmaPong Startseite",
+    "mainNav": "Hauptnavigation",
+    "userMenu": "Benutzermenü",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "profile": "Profil"
+  },
+  "nav": {
+    "home": "Start",
+    "play": "Spielen",
+    "rankings": "Rangliste",
+    "profile": "Profil",
+    "admin": "Admin",
+    "referee": "Schiri",
+    "rules": "Regeln",
+    "tournament": "Turnier",
+    "team": "Team"
+  },
+  "roles": {
+    "PLAYER": "Spieler:in",
+    "REFEREE": "Schiedsrichter:in",
+    "ADMIN": "Admin"
+  }
+}

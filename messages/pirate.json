@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "description": "The grog-soaked beer pong tourney o' the Pharmazentrum at the University o' Basel, arrr!"
+  },
+  "language": {
+    "label": "Tongue"
+  },
+  "shell": {
+    "skipToContent": "Skip to the booty",
+    "homeAria": "PharmaPong home port",
+    "mainNav": "Ship's compass",
+    "userMenu": "Sailor's menu",
+    "signIn": "Come aboard",
+    "signOut": "Abandon ship",
+    "profile": "Sailor's log"
+  },
+  "nav": {
+    "home": "Home port",
+    "play": "Hoist & play",
+    "rankings": "Seven Seas",
+    "profile": "Sailor's log",
+    "admin": "Admiral",
+    "referee": "Bosun",
+    "rules": "Pirate code",
+    "tournament": "Armada",
+    "team": "Crew"
+  },
+  "roles": {
+    "PLAYER": "Swashbuckler",
+    "REFEREE": "Quartermaster",
+    "ADMIN": "Admiral"
+  }
+}

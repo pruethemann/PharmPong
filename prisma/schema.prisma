@@ -115,10 +115,11 @@ model User {
   role               Role     @default(PLAYER)
   isActive           Boolean  @default(true)
   mustChangePassword Boolean  @default(false)
+  locale             String? // preferred UI language: en | de | pirate
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  sessions          Session[]
+  sessions         Session[]
   memberships       TeamMember[]
   passwordResets    PasswordReset[]       @relation("ResetTarget")
   refereeMatches    Match[]               @relation("MatchReferee")
