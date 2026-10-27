@@ -40,9 +40,12 @@ export function teamLogoUrl(team: {
 export function assertTeamName(raw: string): string {
   const name = cleanTeamName(typeof raw === "string" ? raw : "");
   if (name.length < TEAM_NAME_MIN || name.length > TEAM_NAME_MAX) {
-    fail("VALIDATION", `Der Teamname muss ${TEAM_NAME_MIN}–${TEAM_NAME_MAX} Zeichen lang sein.`, {
-      field: "name",
-    });
+    fail(
+      "VALIDATION",
+      `Der Teamname muss ${TEAM_NAME_MIN}–${TEAM_NAME_MAX} Zeichen lang sein.`,
+      { field: "name" },
+      { key: "teamNameLength", values: { min: TEAM_NAME_MIN, max: TEAM_NAME_MAX } },
+    );
   }
   return name;
 }
@@ -51,14 +54,19 @@ export function assertTeamName(raw: string): string {
 export function assertMotto(raw: string | null | undefined): string | null {
   const motto = (raw ?? "").trim().replace(/\s+/g, " ");
   if (motto.length > MOTTO_MAX) {
-    fail("VALIDATION", `Das Motto darf höchstens ${MOTTO_MAX} Zeichen lang sein.`, { field: "motto" });
+    fail(
+      "VALIDATION",
+      `Das Motto darf höchstens ${MOTTO_MAX} Zeichen lang sein.`,
+      { field: "motto" },
+      { key: "mottoTooLong", values: { max: MOTTO_MAX } },
+    );
   }
   return motto.length ? motto : null;
 }
 
 async function resolveTournamentId(opts?: TeamOpts): Promise<string> {
   const id = opts?.tournamentId ?? (await getCurrentTournamentId());
-  if (!id) fail("NOT_FOUND", "Kein Turnier gefunden.");
+  if (!id) fail("NOT_FOUND", "Kein Turnier gefunden.", undefined, { key: "noTournament" });
   return id;
 }
 
@@ -75,7 +83,10 @@ const FINISHED: readonly TournamentStatus[] = ["COMPLETED", "CANCELLED"];
 /** Players may create/join/leave only while registration is open. */
 function assertRegistrationOpen(status: TournamentStatus): void {
   if (status === "REGISTRATION_OPEN") return;
-  if (status === "DRAFT") fail("INVALID_STATE", "Die Anmeldung ist noch nicht geöffnet.");
+  if (status === "DRAFT")
+    fail("INVALID_STATE", "Die Anmeldung ist noch nicht geöffnet.", undefined, {
+      key: "registrationNotOpen",
+    });
   fail("ROSTER_LOCKED");
 }
 
@@ -90,7 +101,8 @@ export function canEditProfile(status: TournamentStatus): boolean {
 }
 
 function assertNotFinished(status: TournamentStatus): void {
-  if (FINISHED.includes(status)) fail("INVALID_STATE", "Das Turnier ist bereits beendet.");
+  if (FINISHED.includes(status))
+    fail("INVALID_STATE", "Das Turnier ist bereits beendet.", undefined, { key: "tournamentFinished" });
 }
 
 type LockedTeam = {
@@ -112,7 +124,8 @@ async function lockTeam(tx: Tx, teamId: string, tournamentId: string): Promise<L
            version, "logoKey", "logoVersion"
     FROM "Team" WHERE id = ${teamId} FOR UPDATE`;
   const team = rows[0];
-  if (!team || team.tournamentId !== tournamentId) fail("NOT_FOUND", "Team nicht gefunden.");
+  if (!team || team.tournamentId !== tournamentId)
+    fail("NOT_FOUND", "Team nicht gefunden.", undefined, { key: "teamNotFound" });
   return team;
 }
 
@@ -161,7 +174,8 @@ function freeSlot(members: { slot: number }[]): number {
 
 async function assertUserCanJoin(tx: Tx, tournamentId: string, userId: string) {
   const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true, isActive: true } });
-  if (!user || !user.isActive) fail("NOT_FOUND", "Benutzer:in nicht gefunden.");
+  if (!user || !user.isActive)
+    fail("NOT_FOUND", "Benutzer:in nicht gefunden.", undefined, { key: "userNotFound" });
   const existing = await activeMembershipOf(tx, tournamentId, userId);
   if (existing) fail("ALREADY_IN_TEAM", undefined, { userId });
 }
@@ -188,7 +202,7 @@ async function bumpVersion(tx: Tx, teamId: string) {
 
 async function teamTournamentId(teamId: string): Promise<string> {
   const t = await db.team.findUnique({ where: { id: teamId }, select: { tournamentId: true } });
-  if (!t) fail("NOT_FOUND", "Team nicht gefunden.");
+  if (!t) fail("NOT_FOUND", "Team nicht gefunden.", undefined, { key: "teamNotFound" });
   return t.tournamentId;
 }
 
@@ -357,7 +371,8 @@ export async function updateTeam(
     const team = await lockTeam(tx, input.teamId, tournamentId);
     const membership = await activeMembershipOf(tx, tournamentId, actor.id);
     if (membership?.teamId !== team.id) fail("FORBIDDEN");
-    if (team.status !== "ACTIVE") fail("INVALID_STATE", "Dieses Team ist aufgelöst.");
+    if (team.status !== "ACTIVE")
+      fail("INVALID_STATE", "Dieses Team ist aufgelöst.", undefined, { key: "teamDissolved" });
     if (team.version !== input.expectedVersion) fail("STALE_VERSION", undefined, { version: team.version });
 
     const data: { name?: string; nameNormalized?: string; motto?: string | null } = {};
@@ -403,7 +418,9 @@ export async function setReady(actor: Actor, ready: boolean, opts?: TeamOpts): P
   const tournamentId = await resolveTournamentId(opts);
   await withTournamentTx(tournamentId, async (tx, ctx) => {
     if (!BEFORE_GROUP_STAGE.includes(ctx.tournament.status) || ctx.tournament.status === "DRAFT") {
-      fail("INVALID_STATE", "Der Check-in ist nur während der Anmeldung möglich.");
+      fail("INVALID_STATE", "Der Check-in ist nur während der Anmeldung möglich.", undefined, {
+        key: "checkInOnlyDuringRegistration",
+      });
     }
     const membership = await activeMembershipOf(tx, tournamentId, actor.id);
     if (!membership) fail("NOT_IN_TEAM");
@@ -441,7 +458,8 @@ async function adminTeamTx<T>(
 }
 
 function assertActiveTeam(team: LockedTeam) {
-  if (team.status !== "ACTIVE") fail("INVALID_STATE", "Dieses Team ist aufgelöst.");
+  if (team.status !== "ACTIVE")
+    fail("INVALID_STATE", "Dieses Team ist aufgelöst.", undefined, { key: "teamDissolved" });
 }
 
 export async function adminRenameTeam(
@@ -505,7 +523,7 @@ export async function adminRemoveMember(
     assertActiveTeam(team);
     const members = await activeMembers(tx, team.id);
     const m = members.find((x) => x.userId === input.userId);
-    if (!m) fail("NOT_IN_TEAM", "Diese Person ist nicht im Team.");
+    if (!m) fail("NOT_IN_TEAM", "Diese Person ist nicht im Team.", undefined, { key: "personNotInTeam" });
     await tx.teamMember.update({ where: { id: m.id }, data: { leftAt: ctx.now, isReady: false } });
     const dissolved = members.length === 1 && BEFORE_GROUP_STAGE.includes(ctx.tournament.status);
     if (dissolved) await dissolve(tx, team, ctx.now);
@@ -556,12 +574,13 @@ export async function adminReplaceMember(
   actor: Actor,
   input: { teamId: string; oldUserId: string; newUserId: string; reason: string },
 ): Promise<void> {
-  if (input.oldUserId === input.newUserId) fail("VALIDATION", "Alte und neue Person sind identisch.");
+  if (input.oldUserId === input.newUserId)
+    fail("VALIDATION", "Alte und neue Person sind identisch.", undefined, { key: "samePerson" });
   await adminTeamTx(actor, input.teamId, async (tx, ctx, team) => {
     assertActiveTeam(team);
     const members = await activeMembers(tx, team.id);
     const old = members.find((x) => x.userId === input.oldUserId);
-    if (!old) fail("NOT_IN_TEAM", "Diese Person ist nicht im Team.");
+    if (!old) fail("NOT_IN_TEAM", "Diese Person ist nicht im Team.", undefined, { key: "personNotInTeam" });
     await assertUserCanJoin(tx, team.tournamentId, input.newUserId);
     await tx.teamMember.update({ where: { id: old.id }, data: { leftAt: ctx.now, isReady: false } });
     await tx.teamMember.create({
@@ -589,13 +608,21 @@ export async function adminDissolveTeam(
   await adminTeamTx(actor, input.teamId, async (tx, ctx, team) => {
     assertActiveTeam(team);
     if (!BEFORE_GROUP_STAGE.includes(ctx.tournament.status)) {
-      fail("INVALID_STATE", "Teams können nach Beginn der Gruppenphase nicht mehr aufgelöst werden.");
+      fail(
+        "INVALID_STATE",
+        "Teams können nach Beginn der Gruppenphase nicht mehr aufgelöst werden.",
+        undefined,
+        { key: "cannotDissolveAfterGroups" },
+      );
     }
     const drawn = await tx.groupAssignment.findUnique({
       where: { teamId: team.id },
       select: { teamId: true },
     });
-    if (drawn) fail("INVALID_STATE", "Das Team ist bereits einer Gruppe zugelost.");
+    if (drawn)
+      fail("INVALID_STATE", "Das Team ist bereits einer Gruppe zugelost.", undefined, {
+        key: "alreadyDrawn",
+      });
     const members = await activeMembers(tx, team.id);
     await dissolve(tx, team, ctx.now);
     await writeAudit(tx, {
@@ -619,7 +646,7 @@ export async function adminCreateTeam(
   assertRole(actor, "ADMIN");
   const ids = [...new Set(input.memberUserIds)];
   if (ids.length !== input.memberUserIds.length || ids.length > TEAM_SIZE) {
-    fail("VALIDATION", "Ungültige Mitgliederliste.");
+    fail("VALIDATION", "Ungültige Mitgliederliste.", undefined, { key: "invalidMemberList" });
   }
   const name = assertTeamName(input.name);
   const motto = assertMotto(input.motto);

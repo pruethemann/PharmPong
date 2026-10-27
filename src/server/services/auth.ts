@@ -29,10 +29,10 @@ export async function registerUser(
   if (await isLocked(ipKey, client)) fail("RATE_LIMITED");
   await hit(ipKey, RULES.register, client);
   if (meta.requiredEventCode && !safeEqual((input.eventCode ?? "").trim(), meta.requiredEventCode)) {
-    fail("VALIDATION", "Falscher Event-Code.", { field: "eventCode" });
+    fail("VALIDATION", "Falscher Event-Code.", { field: "eventCode" }, { key: "eventCodeWrong" });
   }
   if (input.email.trim().toLowerCase().endsWith(`@${RESERVED_EMAIL_DOMAIN}`)) {
-    fail("VALIDATION", "Diese E-Mail-Adresse ist reserviert.", { field: "email" });
+    fail("VALIDATION", "Diese E-Mail-Adresse ist reserviert.", { field: "email" }, { key: "emailReserved" });
   }
   const passwordHash = await hashPassword(input.password);
   const user = await withTx(
@@ -106,7 +106,9 @@ export async function changePassword(
   assertRole(actor, "PLAYER");
   const user = await client.user.findUniqueOrThrow({ where: { id: actor.id } });
   if (!(await verifyPassword(user.passwordHash, input.currentPassword))) {
-    fail("INVALID_CREDENTIALS", "Das aktuelle Passwort ist falsch.");
+    fail("INVALID_CREDENTIALS", "Das aktuelle Passwort ist falsch.", undefined, {
+      key: "currentPasswordWrong",
+    });
   }
   const passwordHash = await hashPassword(input.newPassword);
   await withTx(
@@ -214,7 +216,7 @@ export async function redeemPasswordReset(
   );
   if (!userId) {
     await hit(ipKey, RULES.reset, client);
-    fail("NOT_FOUND", "Der Link ist ungültig oder abgelaufen.");
+    fail("NOT_FOUND", "Der Link ist ungültig oder abgelaufen.", undefined, { key: "linkInvalid" });
   }
   await revokeUserSessions(userId, client);
 }

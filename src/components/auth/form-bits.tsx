@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useValidationText } from "@/i18n/use-validation-text";
 
 /** Label + control + hint + inline error, wired with aria-describedby. */
 export function Field({
   id,
   label,
   hint,
-  error,
+  error: rawError,
   children,
 }: {
   id: string;
@@ -21,6 +22,7 @@ export function Field({
   error?: string;
   children: ReactNode;
 }) {
+  const error = useValidationText()(rawError);
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id} className="text-base">

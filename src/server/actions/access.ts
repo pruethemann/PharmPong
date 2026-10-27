@@ -23,9 +23,14 @@ export function accessError(
   if (access === "public") return null;
   if (!user) return new DomainError("UNAUTHENTICATED");
   if (user.mustChangePassword && !opts.allowPendingPasswordChange) {
-    return new DomainError("FORBIDDEN", PASSWORD_CHANGE_REQUIRED_MESSAGE, {
-      reason: "PASSWORD_CHANGE_REQUIRED",
-    });
+    return new DomainError(
+      "FORBIDDEN",
+      PASSWORD_CHANGE_REQUIRED_MESSAGE,
+      {
+        reason: "PASSWORD_CHANGE_REQUIRED",
+      },
+      { key: "passwordChangeRequired" },
+    );
   }
   if (RANK[user.role] < RANK[access]) return new DomainError("FORBIDDEN");
   return null;

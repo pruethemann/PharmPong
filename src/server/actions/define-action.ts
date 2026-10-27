@@ -4,11 +4,15 @@ import { getCurrentUser, touchSession } from "@/server/auth/current";
 import type { SessionUser } from "@/server/auth/sessions";
 import { isDomainError, type ErrorCode } from "@/server/domain/errors";
 import { toDomainError } from "@/server/services/pg-errors";
-import { errorMessage } from "@/lib/i18n/de";
+import { getTranslations } from "next-intl/server";
+import { VALIDATION_PREFIX, validationParams } from "@/i18n/validation";
 import type { ActionResult } from "@/lib/action-result";
 import { accessError, type Access } from "./access";
 
-/** Codes whose DomainError message is user-facing German text written by the domain/service layer. */
+/**
+ * Codes whose DomainError message is user-facing German text written by the domain/service layer.
+ * Used as a fallback when the error carries no `i18n` key (staff-only flows stay German).
+ */
 const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
   "VALIDATION",
   "INVALID_RESULT",
@@ -35,7 +39,7 @@ const DOMAIN_MESSAGE_CODES = new Set<ErrorCode>([
 
 /**
  * Wrap a Server Action: validate input with Zod, enforce role, map DomainErrors
- * to German messages. Success is only returned after the handler's transaction committed.
+ * to messages in the request locale. Success is only returned after the handler's transaction committed.
  */
 export function defineAction<S extends z.ZodType, R>(config: {
   schema: S;
@@ -53,12 +57,19 @@ export function defineAction<S extends z.ZodType, R>(config: {
       if (denied) throw denied;
       const parsed = config.schema.safeParse(raw);
       if (!parsed.success) {
+        const [tErrors, tValidation] = await Promise.all([
+          getTranslations("errors"),
+          getTranslations("validation"),
+        ]);
         const fieldErrors: Record<string, string> = {};
         for (const issue of parsed.error.issues) {
           const key = issue.path.join(".") || "_";
-          fieldErrors[key] ??= issue.message;
+          // Schemas emit `validation.<key>` message keys; anything else is legacy (German) text.
+          fieldErrors[key] ??= issue.message.startsWith(VALIDATION_PREFIX)
+            ? tValidation(issue.message.slice(VALIDATION_PREFIX.length), validationParams)
+            : issue.message;
         }
-        return { ok: false, code: "VALIDATION", message: errorMessage.VALIDATION, fieldErrors };
+        return { ok: false, code: "VALIDATION", message: tErrors("VALIDATION"), fieldErrors };
       }
       const data = await config.handler(parsed.data, { user });
       if (user) await touchSession().catch(() => undefined);
@@ -76,14 +87,20 @@ export function defineAction<S extends z.ZodType, R>(config: {
       }
       const err = isDomainError(e) ? e : toDomainError(e);
       if (err.code === "INTERNAL") console.error("[action] internal error", e);
-      // Domain errors may carry a specific German message (e.g. why a result is invalid).
-      const specific = err.message && err.message !== err.code && DOMAIN_MESSAGE_CODES.has(err.code);
-      return {
-        ok: false,
-        code: err.code as ErrorCode,
-        message: specific ? err.message : (errorMessage[err.code] ?? err.message),
-        details: err.details,
-      };
+      const [tErrors, tSpecific] = await Promise.all([
+        getTranslations("errors"),
+        getTranslations("errors.specific"),
+      ]);
+      let message: string;
+      if (err.i18n && tSpecific.has(err.i18n.key)) {
+        message = tSpecific(err.i18n.key, err.i18n.values);
+      } else if (err.message && err.message !== err.code && DOMAIN_MESSAGE_CODES.has(err.code)) {
+        // No translation key: keep the specific German message (staff-only flows).
+        message = err.message;
+      } else {
+        message = tErrors.has(err.code) ? tErrors(err.code) : err.message;
+      }
+      return { ok: false, code: err.code as ErrorCode, message, details: err.details };
     }
   };
 }

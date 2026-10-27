@@ -17,14 +17,9 @@ export function normalizeTeamName(input: string): string {
 }
 
 export const teamNameSchema = z
-  .string({ error: "Bitte gib einen Teamnamen ein." })
+  .string({ error: "validation.teamNameRequired" })
   .transform(cleanTeamName)
-  .pipe(
-    z
-      .string()
-      .min(TEAM_NAME_MIN, `Mindestens ${TEAM_NAME_MIN} Zeichen.`)
-      .max(TEAM_NAME_MAX, `Höchstens ${TEAM_NAME_MAX} Zeichen.`),
-  );
+  .pipe(z.string().min(TEAM_NAME_MIN, "validation.teamNameMin").max(TEAM_NAME_MAX, "validation.teamNameMax"));
 
 /** Optional motto; empty string becomes null. */
 export const mottoSchema = z
@@ -35,7 +30,7 @@ export const mottoSchema = z
     const t = (v ?? "").trim().replace(/\s+/g, " ");
     return t.length ? t : null;
   })
-  .pipe(z.string().max(MOTTO_MAX, `Höchstens ${MOTTO_MAX} Zeichen.`).nullable());
+  .pipe(z.string().max(MOTTO_MAX, "validation.mottoMax").nullable());
 
 const id = z.string().min(1).max(64);
 const reason = z
@@ -47,7 +42,7 @@ const reason = z
 export const createTeamSchema = z.object({ name: teamNameSchema, motto: mottoSchema });
 
 export const joinTeamSchema = z.object({
-  code: z.string().trim().min(1, "Bitte gib einen Einladungscode ein.").max(32, "Code ist zu lang."),
+  code: z.string().trim().min(1, "validation.inviteCodeRequired").max(32, "validation.inviteCodeTooLong"),
 });
 
 export const updateTeamSchema = z.object({

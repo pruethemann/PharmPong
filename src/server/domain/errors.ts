@@ -1,4 +1,4 @@
-// Domain error codes. Mapped to German UI messages in src/lib/i18n/de.ts.
+// Domain error codes. Mapped to UI messages in messages/*.json (namespace `errors`).
 export const ERROR_CODES = [
   "UNAUTHENTICATED",
   "FORBIDDEN",
@@ -39,15 +39,23 @@ export const ERROR_CODES = [
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
+/**
+ * Translation key (namespace `errors.specific`) plus ICU values for a user-facing message.
+ * `message` stays German so logs, tests and untranslated staff flows keep working.
+ */
+export type ErrorI18n = { key: string; values?: Record<string, string | number> };
+
 export class DomainError extends Error {
   readonly code: ErrorCode;
   readonly details?: Record<string, unknown>;
+  readonly i18n?: ErrorI18n;
 
-  constructor(code: ErrorCode, message?: string, details?: Record<string, unknown>) {
+  constructor(code: ErrorCode, message?: string, details?: Record<string, unknown>, i18n?: ErrorI18n) {
     super(message ?? code);
     this.name = "DomainError";
     this.code = code;
     this.details = details;
+    this.i18n = i18n;
   }
 }
 
@@ -55,6 +63,11 @@ export function isDomainError(e: unknown): e is DomainError {
   return e instanceof DomainError;
 }
 
-export function fail(code: ErrorCode, message?: string, details?: Record<string, unknown>): never {
-  throw new DomainError(code, message, details);
+export function fail(
+  code: ErrorCode,
+  message?: string,
+  details?: Record<string, unknown>,
+  i18n?: ErrorI18n,
+): never {
+  throw new DomainError(code, message, details, i18n);
 }

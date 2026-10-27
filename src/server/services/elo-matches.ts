@@ -45,14 +45,20 @@ const limitsOf = (s: EloSession) => ({ minTeamSize: s.minTeamSize, maxTeamSize: 
 async function assertKnownPlayers(tx: Tx, userIds: readonly string[]): Promise<void> {
   const found = await tx.user.count({ where: { id: { in: [...userIds] }, isActive: true } });
   if (found !== new Set(userIds).size) {
-    fail("VALIDATION", "Unbekannte oder deaktivierte Spieler:in in der Aufstellung.", { field: "roster" });
+    fail(
+      "VALIDATION",
+      "Unbekannte oder deaktivierte Spieler:in in der Aufstellung.",
+      { field: "roster" },
+      { key: "unknownPlayer" },
+    );
   }
 }
 
 /** The table must belong to the event, be enabled and be free of live Elo and competitive matches. */
 async function assertFreeTable(tx: Tx, ctx: TxContext, tableId: string, exceptMatchId?: string) {
   const table = await tx.gameTable.findUnique({ where: { id: tableId } });
-  if (!table || table.tournamentId !== ctx.tournament.id) fail("NOT_FOUND", "Tisch nicht gefunden.");
+  if (!table || table.tournamentId !== ctx.tournament.id)
+    fail("NOT_FOUND", "Tisch nicht gefunden.", undefined, { key: "tableNotFound" });
   if (table.isDisabled) fail("TABLE_DISABLED");
   const [elo, competitive] = await Promise.all([
     tx.eloMatch.count({
@@ -65,7 +71,10 @@ async function assertFreeTable(tx: Tx, ctx: TxContext, tableId: string, exceptMa
     tx.match.count({ where: { tableId, status: { in: [...ACTIVE_COMPETITIVE] } } }),
   ]);
   if (elo + competitive > 0)
-    fail("TABLE_BUSY", `An ${table.name} wird gerade gespielt oder er ist reserviert.`);
+    fail("TABLE_BUSY", `An ${table.name} wird gerade gespielt oder er ist reserviert.`, undefined, {
+      key: "tableBusyNamed",
+      values: { table: table.name },
+    });
   return table;
 }
 
@@ -110,7 +119,9 @@ export async function createEloMatch(
     assertValidRoster(input.sideA, input.sideB, limitsOf(session));
     const creatorSide = sideOfUser(input, actor.id);
     if (!creatorSide && !isReferee(actor)) {
-      fail("FORBIDDEN", "Du kannst nur Matches erstellen, in denen du selbst mitspielst.");
+      fail("FORBIDDEN", "Du kannst nur Matches erstellen, in denen du selbst mitspielst.", undefined, {
+        key: "onlyOwnMatches",
+      });
     }
     await assertKnownPlayers(tx, [...input.sideA, ...input.sideB]);
     const table = await assertFreeTable(tx, ctx, input.tableId);
@@ -266,7 +277,12 @@ export async function staffConsentEloRoster(
       const facts = eloFacts(match, ctx.now.getTime());
       const sides = [...new Set(input.sides)].filter((s) => (s === "A" ? !facts.consentA : !facts.consentB));
       if (sides.length === 0)
-        fail("VALIDATION", "Bitte ein Team wählen, das noch nicht bestätigt hat.", { field: "sides" });
+        fail(
+          "VALIDATION",
+          "Bitte ein Team wählen, das noch nicht bestätigt hat.",
+          { field: "sides" },
+          { key: "pickUnconfirmedTeam" },
+        );
       const data: Prisma.EloMatchUncheckedUpdateManyInput = { expiresAt: draftExpiry(ctx.now) };
       for (const s of sides) {
         Object.assign(

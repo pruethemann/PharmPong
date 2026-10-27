@@ -7,19 +7,15 @@ export const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .max(254, "E-Mail-Adresse ist zu lang.")
-  .pipe(z.email("Bitte gib eine gültige E-Mail-Adresse ein."));
+  .max(254, "validation.emailTooLong")
+  .pipe(z.email("validation.emailInvalid"));
 
 export const passwordSchema = z
   .string()
-  .min(PASSWORD_MIN, `Mindestens ${PASSWORD_MIN} Zeichen.`)
-  .max(PASSWORD_MAX, `Höchstens ${PASSWORD_MAX} Zeichen.`);
+  .min(PASSWORD_MIN, "validation.passwordMin")
+  .max(PASSWORD_MAX, "validation.passwordMax");
 
-export const displayNameSchema = z
-  .string()
-  .trim()
-  .min(2, "Mindestens 2 Zeichen.")
-  .max(40, "Höchstens 40 Zeichen.");
+export const displayNameSchema = z.string().trim().min(2, "validation.nameMin").max(40, "validation.nameMax");
 
 export const registerSchema = z.object({
   email: emailSchema,
@@ -30,11 +26,11 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Bitte Passwort eingeben.").max(PASSWORD_MAX),
+  password: z.string().min(1, "validation.passwordRequired").max(PASSWORD_MAX),
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Bitte aktuelles Passwort eingeben.").max(PASSWORD_MAX),
+  currentPassword: z.string().min(1, "validation.currentPasswordRequired").max(PASSWORD_MAX),
   newPassword: passwordSchema,
 });
 
