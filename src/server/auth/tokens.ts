@@ -24,3 +24,17 @@ export function normalizeInviteCode(input: string): string {
     .replace(/[IL]/g, "1")
     .replace(/O/g, "0");
 }
+
+// Lowercase without the look-alikes i, l, o, 0 and 1: easy to type on a phone.
+const PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+/** Generated one-time password: four groups of five characters (about 99 bits), e.g. "k7m2q-xp4rt-9wbzc-h3fna". */
+export function oneTimePassword(): string {
+  const groups: string[] = [];
+  for (let g = 0; g < 4; g++) {
+    let group = "";
+    for (let i = 0; i < 5; i++) group += PASSWORD_ALPHABET[randomInt(PASSWORD_ALPHABET.length)];
+    groups.push(group);
+  }
+  return groups.join("-");
+}

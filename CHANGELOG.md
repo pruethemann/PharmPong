@@ -3,6 +3,15 @@
 All notable changes to PharmaPong. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `pnpm admin:create --email <e-mail> [--name …] [--promote]`: creates an admin account with a one-time
+  password (shown once, must be changed at the first login) or, with `--promote`, makes an existing account an
+  admin without touching its password. Audited; runs on Railway through `railway ssh`. Step-by-step guide in
+  [docs/admin-accounts.md](docs/admin-accounts.md).
+
 ## [0.2.0] - 2026-10-26
 
 Social **Elo Mode** for the apéro after the tournament. The tournament mode is unchanged; all database changes

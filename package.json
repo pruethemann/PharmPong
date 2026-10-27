@@ -22,6 +22,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "seed:admin": "tsx scripts/seed-admin.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "simulate": "tsx scripts/simulate-event.ts",
     "export": "tsx scripts/export-tournament.ts",

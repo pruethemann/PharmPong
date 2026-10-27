@@ -21,7 +21,8 @@ pnpm install
 cp .env.example .env          # adjust if needed
 pnpm db:up                    # Postgres 17 in Docker on :54329 (dev, test, e2e DBs)
 pnpm db:migrate               # apply migrations to the dev DB
-pnpm seed:admin               # create the admin from ADMIN_EMAIL / ADMIN_INITIAL_PASSWORD
+pnpm seed:admin               # open tournament + admin from ADMIN_EMAIL / ADMIN_INITIAL_PASSWORD
+pnpm admin:create --email you@example.com   # optional: your own admin (prints a one-time password)
 pnpm seed:demo                # optional: 24 demo players + 12 teams
 pnpm dev                      # http://localhost:3000
 ```
@@ -85,6 +86,7 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 
 | Command             | What                                                                                         |
 | ------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm admin:create` | Create an admin account or promote an existing one ([guide](docs/admin-accounts.md))         |
 | `pnpm seed:demo`    | Demo users and teams                                                                         |
 | `pnpm simulate`     | Plays a complete 19-match tournament on the dev DB                                           |
 | `pnpm export`       | JSON/CSV export of standings and results to `data/`                                          |
@@ -95,7 +97,8 @@ The `@pharmapong.test` domain is reserved and cannot be used for self-registrati
 
 **Live:** https://web-production-13b1f.up.railway.app (Railway project _PharmaPong_: `web` + Postgres + bucket `pharmapong-logos`).
 Procedure, variables, backups and runbook: [docs/deployment.md](docs/deployment.md).
-Before the event, set `ADMIN_INITIAL_PASSWORD` in Railway (web → Variables) and redeploy so the admin `ADMIN_EMAIL` is created.
+Admin account on Railway: `railway ssh --service web -- pnpm admin:create --email <e-mail>` (step by step, also locally:
+[docs/admin-accounts.md](docs/admin-accounts.md)).
 
 ## Documentation
 
@@ -104,6 +107,7 @@ Before the event, set `ADMIN_INITIAL_PASSWORD` in Railway (web → Variables) an
 - [Tournament rules](docs/tournament-rules.md)
 - [Database](docs/database.md)
 - [Deployment](docs/deployment.md)
+- [Admin accounts](docs/admin-accounts.md)
 - [Test plan](docs/test-plan.md)
 - Elo Mode: [user guide](docs/elo-mode/user-guide.md), [admin guide](docs/elo-mode/admin-guide.md),
   [rating system](docs/elo-mode/rating-system.md), [validation](docs/elo-mode/rating-validation.md),

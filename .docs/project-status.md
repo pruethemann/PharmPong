@@ -1,7 +1,8 @@
-# PharmaPong: project status (2026-10-26)
+# PharmaPong: project status (2026-10-27)
 
 - Phases 1–8 complete. Deployed 2026-10-25 to https://web-production-13b1f.up.railway.app (Railway project PharmaPong,
-  account peter.ruethemann@stud.unibas.ch; the gmail account's trial is expired). Admin pending until ADMIN_INITIAL_PASSWORD is set.
+  account peter.ruethemann@stud.unibas.ch; the gmail account's trial is expired). No admin account yet: after the next deploy create one with
+  `railway ssh --service web -- pnpm admin:create --email <e-mail>` (docs/admin-accounts.md) or set ADMIN_INITIAL_PASSWORD.
   railway.json is NOT applied by `railway up`: service settings were set via GraphQL serviceInstanceUpdate.
 - Decisions: custom DB sessions instead of Auth.js; e-mail login; Europe/Zurich display; forfeit = 10:0;
   manual knockout start; referees may assign only the scheduler suggestion and may not officiate their own team;
@@ -11,7 +12,7 @@
 - `prisma migrate reset` is blocked for AI agents (Prisma consent guard); tests use `migrate deploy` + TRUNCATE.
 - Node: local 26 works; Railway pinned to 24 via `RAILPACK_NODE_VERSION` (Prisma 7 support).
 
-## v0.2.0 Elo Mode (branch `elo`, 2026-10-26, not pushed, not deployed)
+## v0.2.0 Elo Mode (2026-10-26; merged into `main` and pushed by the user on 2026-10-27; not deployed)
 
 - Built in 8 steps (commits "Elo Mode step 1" … "step 8"); plan and status in `docs/elo-mode/implementation-plan.md`,
   verbatim spec in `claudecode-instructions/elo-spec.md`.
@@ -24,3 +25,12 @@
   (scratch DB only), `pnpm elo:validate` (no DB).
 - Dev servers with a new `NEXT_DIST_DIR` rewrite `tsconfig.json` (include list) and the git-ignored
   `next-env.d.ts`; reuse `.next-a/b/c` and restore `next-env.d.ts` to `.next/dev/types/…` afterwards.
+
+## Admin accounts (2026-10-27)
+
+- `pnpm admin:create --email … [--name …] [--promote]` (scripts/create-admin.ts → `createAdminAccount` in
+  services/bootstrap.ts): generated one-time password printed once + mustChangePassword; existing accounts only with
+  `--promote` (password kept, reactivated, sessions revoked); audited with actor null, reason "CLI".
+- On Railway it must run inside the container (`railway ssh`): `railway run` cannot reach `postgres.railway.internal`.
+  The other `railway run` examples in docs/deployment.md (export, simulate) have the same limitation.
+- Guide: docs/admin-accounts.md. Tests: tests/integration/admin-accounts.int.test.ts (also spawns the real CLI).

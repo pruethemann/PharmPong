@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { inviteCode, normalizeInviteCode, randomToken, sha256 } from "./tokens";
+import { passwordSchema } from "@/lib/validation/auth";
+import { inviteCode, normalizeInviteCode, oneTimePassword, randomToken, sha256 } from "./tokens";
 
 describe("inviteCode", () => {
   it("has the default length 8 and uses only the unambiguous alphabet", () => {
@@ -41,5 +42,18 @@ describe("randomToken / sha256", () => {
     expect(a).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(sha256("x")).toBe(sha256("x"));
     expect(sha256(a)).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("oneTimePassword", () => {
+  it("is four groups of five unambiguous characters that pass the password rules", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const pw = oneTimePassword();
+      expect(pw).toMatch(/^[a-hjkmnp-z2-9]{5}(-[a-hjkmnp-z2-9]{5}){3}$/);
+      expect(passwordSchema.safeParse(pw).success).toBe(true);
+      seen.add(pw);
+    }
+    expect(seen.size).toBe(200);
   });
 });

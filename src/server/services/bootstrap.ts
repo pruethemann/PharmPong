@@ -1,7 +1,13 @@
 import { db, type Db } from "@/server/db";
+import type { Role } from "@/generated/prisma/enums";
 import { hashPassword } from "@/server/auth/password";
+import { oneTimePassword } from "@/server/auth/tokens";
+import { fail } from "@/server/domain/errors";
+import { displayNameSchema, emailSchema } from "@/lib/validation/auth";
+import { writeAudit } from "./audit";
 
 export const DEFAULT_TOURNAMENT_NAME = "PharmaPong";
+export const DEFAULT_ADMIN_NAME = "Turnierleitung";
 
 /** Ensure an open tournament with two tables exists. Idempotent. */
 export async function ensureTournament(client: Db = db): Promise<string> {
@@ -70,7 +76,7 @@ export async function ensureAdmin(
   await client.user.create({
     data: {
       email: normalized,
-      displayName: "Turnierleitung",
+      displayName: DEFAULT_ADMIN_NAME,
       passwordHash: await hashPassword(initialPassword),
       role: "ADMIN",
       mustChangePassword: true,
@@ -95,7 +101,7 @@ export async function createAdminIfMissing(
     data: [
       {
         email: normalized,
-        displayName: "Turnierleitung",
+        displayName: DEFAULT_ADMIN_NAME,
         passwordHash,
         role: "ADMIN",
         mustChangePassword: true,
@@ -104,4 +110,69 @@ export async function createAdminIfMissing(
     skipDuplicates: true,
   });
   return { created: r.count === 1 };
+}
+
+type AdminAccount = { userId: string; email: string; displayName: string };
+
+export type CreateAdminResult =
+  | (AdminAccount & { status: "created"; oneTimePassword: string })
+  | (AdminAccount & { status: "promoted"; previousRole: Role; reactivated: boolean })
+  | (AdminAccount & { status: "already_admin" })
+  | (AdminAccount & { status: "exists"; role: Role; isActive: boolean });
+
+/**
+ * `pnpm admin:create` (scripts/create-admin.ts, guide in docs/admin-accounts.md). A new address gets an
+ * admin account with a generated one-time password that must be changed at first login. An existing account
+ * becomes an admin only with `promote`: it keeps its password, is reactivated if needed and is signed out.
+ * Never changes a password. Audited without an actor (shown as "System") and with the reason "CLI".
+ */
+export async function createAdminAccount(
+  input: { email: string; displayName?: string; promote?: boolean },
+  client: Db = db,
+): Promise<CreateAdminResult> {
+  const email = emailSchema.safeParse(input.email);
+  if (!email.success) fail("VALIDATION", `Not a valid e-mail address: "${input.email}"`);
+  const name = displayNameSchema.safeParse(input.displayName ?? DEFAULT_ADMIN_NAME);
+  if (!name.success) fail("VALIDATION", "The display name needs 2 to 40 characters.");
+  const address = email.data;
+  const displayName = name.data;
+  const password = oneTimePassword();
+  const passwordHash = await hashPassword(password);
+
+  // A plain transaction rather than withTx, so that the CLI can report the database's own error.
+  return client.$transaction(async (tx): Promise<CreateAdminResult> => {
+    const existing = await tx.user.findUnique({
+      where: { email: address },
+      select: { id: true, email: true, displayName: true, role: true, isActive: true },
+    });
+    if (!existing) {
+      const user = await tx.user.create({
+        data: { email: address, displayName, passwordHash, role: "ADMIN", mustChangePassword: true },
+      });
+      await writeAudit(tx, {
+        action: "user.admin_create",
+        entityType: "User",
+        entityId: user.id,
+        after: { role: "ADMIN", mustChangePassword: true },
+        reason: "CLI",
+      });
+      return { status: "created", userId: user.id, email: address, displayName, oneTimePassword: password };
+    }
+    const account = { userId: existing.id, email: existing.email, displayName: existing.displayName };
+    if (existing.role === "ADMIN" && existing.isActive) return { ...account, status: "already_admin" };
+    if (!input.promote) {
+      return { ...account, status: "exists", role: existing.role, isActive: existing.isActive };
+    }
+    await tx.user.update({ where: { id: existing.id }, data: { role: "ADMIN", isActive: true } });
+    const revoked = await tx.session.deleteMany({ where: { userId: existing.id } });
+    await writeAudit(tx, {
+      action: existing.role === "ADMIN" ? "user.activate" : "user.role_change",
+      entityType: "User",
+      entityId: existing.id,
+      before: { role: existing.role, isActive: existing.isActive },
+      after: { role: "ADMIN", isActive: true, sessionsRevoked: revoked.count },
+      reason: "CLI",
+    });
+    return { ...account, status: "promoted", previousRole: existing.role, reactivated: !existing.isActive };
+  });
 }

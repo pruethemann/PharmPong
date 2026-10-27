@@ -5,8 +5,8 @@ Three automated layers plus a scripted full-event simulation. Everything except 
 
 | Layer                                        | Runner               | Location                          | Database                                       | Count                             |
 | -------------------------------------------- | -------------------- | --------------------------------- | ---------------------------------------------- | --------------------------------- |
-| Unit (pure logic)                            | Vitest `unit`        | `src/**/*.test.ts`                | none                                           | 387 tests / 39 files              |
-| Integration (services against real Postgres) | Vitest `integration` | `tests/integration/*.int.test.ts` | `pharmapong_test` (truncated before each test) | 315 tests / 26 files              |
+| Unit (pure logic)                            | Vitest `unit`        | `src/**/*.test.ts`                | none                                           | 388 tests / 39 files              |
+| Integration (services against real Postgres) | Vitest `integration` | `tests/integration/*.int.test.ts` | `pharmapong_test` (truncated before each test) | 321 tests / 27 files              |
 | End-to-end (browser)                         | Playwright           | `tests/e2e/*.spec.ts`             | `pharmapong_e2e` (production build on :3100)   | 165 runs across 3 device projects |
 
 Run:
@@ -48,6 +48,7 @@ Integration tests may run in parallel against an alternative database:
 | referee cannot officiate their own team         | `review-fixes.int.test.ts`                                                                                                                                                 |
 | unauthorized users cannot access protected data | `live.int.test.ts` (401, public snapshot without `@`/codes/hashes), `export.int.test.ts` (401/403), `auth-team.spec.ts` (redirects, `/?forbidden=1`)                       |
 | no privilege escalation                         | `auth.int.test.ts` (registration is always PLAYER, profile cannot change role), `users.int.test.ts` (last admin, role checks), `access.test.ts` (password change enforced) |
+| admin accounts from the command line            | `admin-accounts.int.test.ts` (one-time password, existing accounts only with `--promote`, password kept, audit; runs the real CLI), `tokens.test.ts`                       |
 | brute-force protection                          | `auth.int.test.ts` (5 failures → RATE_LIMITED), `teams.int.test.ts` (invite guessing)                                                                                      |
 
 ### Concurrency (`concurrency.int.test.ts`, real parallel transactions)

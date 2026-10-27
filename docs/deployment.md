@@ -3,8 +3,9 @@
 > **Status (2026-10-25): deployed.** Project **PharmaPong** (workspace "Peter Rüthemann's Projects", account
 > peter.ruethemann@stud.unibas.ch), environment `production`, service `web` → **https://web-production-13b1f.up.railway.app**.
 > Postgres and bucket `pharmapong-logos` (ams) provisioned; migrations applied; health, routes and bucket round trip verified.
-> **Open:** `ADMIN_INITIAL_PASSWORD` is not set yet. Set it in the dashboard (web → Variables), then redeploy so
-> `seed:admin` creates the admin `ADMIN_EMAIL`.
+> **Open:** no admin account yet. After deploying a version that contains `pnpm admin:create`, run
+> `railway ssh --service web -- pnpm admin:create --email <e-mail>` ([admin accounts](admin-accounts.md)), or set
+> `ADMIN_INITIAL_PASSWORD` (web → Variables) and redeploy so `seed:admin` creates the admin `ADMIN_EMAIL`.
 >
 > **Note:** a `railway up` upload did **not** pick up `railway.json` (deployment meta `configFile: null`), and
 > `railway environment edit --service-config` reported "No changes". The build/start/pre-deploy/healthcheck settings were
@@ -86,7 +87,7 @@ Verify with `railway environment config --json` (look at `services.<id>.deploy`)
 ## Smoke test after deploy
 
 1. `curl https://<domain>/api/health` returns `{"ok":true,"db":"ok",…}`.
-2. Log in as `ADMIN_EMAIL` and set a new password (forced).
+2. Create the admin if there is none yet ([admin accounts](admin-accounts.md)), log in and set a new password (forced).
 3. `/admin/tournament`: open registration, enable the public display, upload a team logo on `/team` (checks the bucket).
 4. Redeploy (`railway redeploy --service web`), then check that the logo and data persist.
 5. Optional rehearsal on a separate environment: `railway run --service web pnpm simulate --fresh` with `ALLOW_DEMO_SEED=true` **on a staging environment only**. It plays a full 19-match tournament.
@@ -98,7 +99,7 @@ Verify with `railway environment config --json` (look at `services.<id>.deploy`)
 | --------------------------------------- | ------------- | ------------------------------------------------------ |
 | `DATABASE_URL`                          | yes           | `${{Postgres.DATABASE_URL}}` (private network)         |
 | `APP_URL`                               | yes           | public https URL                                       |
-| `ADMIN_EMAIL`, `ADMIN_INITIAL_PASSWORD` | first deploy  | initial admin (idempotent)                             |
+| `ADMIN_EMAIL`, `ADMIN_INITIAL_PASSWORD` | optional      | initial admin (idempotent); or `pnpm admin:create`     |
 | `STORAGE_DRIVER`                        | yes           | must be `s3` in production (memory storage is refused) |
 | `S3_*`                                  | yes           | bucket reference variables                             |
 | `RAILPACK_NODE_VERSION`                 | yes           | `24` (Prisma 7 supports Node 20/22/24)                 |
@@ -120,7 +121,8 @@ Secrets are never committed (`.env*` is git-ignored except `.env.example`) and n
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | App unhealthy                       | `railway logs --service web --lines 200`; `railway redeploy --service web` (or `railway restart`)                                                              |
 | Bad release                         | roll back in the dashboard (Deployments → previous → Redeploy)                                                                                                 |
-| Admin locked out / forgot password  | another admin creates a reset link at `/admin/users`; break glass: `NEW_PASSWORD=… railway run --service web pnpm tsx scripts/reset-admin-password.ts <email>` |
+| Admin locked out / forgot password  | reset link from another admin at `/admin/users`; break glass in `railway ssh --service web`: `NEW_PASSWORD=… pnpm tsx scripts/reset-admin-password.ts <email>` |
+| No admin account / new admin needed | `railway ssh --service web -- pnpm admin:create --email <e-mail>` (`--promote` for an existing account), see [admin accounts](admin-accounts.md)               |
 | Login throttled for the whole venue | `/admin/users` → "Login-Sperre aufheben"                                                                                                                       |
 | Table broken                        | `/admin/tournament` → disable the table (the scheduler skips it)                                                                                               |
 | Wrong result confirmed              | `/admin/matches` → correct, or use the recovery wizard if downstream matches started                                                                           |

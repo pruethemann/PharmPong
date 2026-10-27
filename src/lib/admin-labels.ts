@@ -86,6 +86,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "admin.team.logo_remove": "Logo entfernt (Admin)",
   // Users & auth
   "user.register": "Konto registriert",
+  "user.admin_create": "Admin per Kommandozeile angelegt",
   "user.profile_update": "Profil geändert",
   "user.password_change": "Passwort geändert",
   "user.reset_link": "Reset-Link erstellt",
